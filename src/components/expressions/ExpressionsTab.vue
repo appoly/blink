@@ -63,7 +63,8 @@ const commit = () => store.commit()
 
 <template>
   <div class="expressions-tab">
-    <!-- The avatar is the hero: big, centre stage. -->
+    <!-- Left 70%: the avatar hero + transport/tweaks. -->
+    <div class="stage-column">
     <section class="stage-area">
       <div :key="current + (editor.playing ? '-play' : '')" class="expr-stage" :class="`avatar-expr--${current}`" :style="stageVars">
         <AvatarSvg :project="project" id-prefix="pv" />
@@ -122,9 +123,10 @@ const commit = () => store.commit()
         Export
       </label>
     </section>
+    </div>
 
-    <!-- Preset filmstrip, thumbnailed with the user's own avatar. -->
-    <section class="filmstrip">
+    <!-- Right 30%: preset grid, thumbnailed with the user's own avatar. -->
+    <section class="preset-sidebar">
       <button
         v-for="name in EXPRESSION_NAMES"
         :key="name"
@@ -147,8 +149,14 @@ const commit = () => store.commit()
 <style scoped>
 .expressions-tab {
   display: flex;
-  flex-direction: column;
   min-height: 0;
+}
+
+.stage-column {
+  flex: 0 0 70%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .stage-area {
@@ -225,19 +233,20 @@ const commit = () => store.commit()
   margin-left: 6px;
 }
 
-.filmstrip {
-  display: flex;
+.preset-sidebar {
+  flex: 0 0 30%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
-  padding: 12px 16px;
+  align-content: start;
+  padding: 12px;
   background: var(--panel);
-  border-top: 1px solid var(--border);
-  overflow-x: auto;
-  flex: none;
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
 }
 
 .card {
-  flex: none;
-  width: 118px;
   padding: 8px;
   border-radius: 10px;
   display: flex;
@@ -255,13 +264,22 @@ const commit = () => store.commit()
 }
 
 .expr-thumb {
-  height: 84px;
-  display: grid;
-  place-items: center;
+  aspect-ratio: 1;
+  position: relative;
+  overflow: hidden;
   pointer-events: none;
   background: #edebe6;
   border-radius: 7px;
-  padding: 6px;
+}
+
+/* Absolutely positioned so the svg's 100% width/height resolve against the
+   chip (a percentage height inside an auto grid row falls back to intrinsic
+   aspect sizing and overflows). Generous inset keeps the pose small. */
+.expr-thumb :deep(svg) {
+  position: absolute;
+  inset: 12px;
+  width: calc(100% - 24px) !important;
+  height: calc(100% - 24px) !important;
 }
 
 .card-label {
