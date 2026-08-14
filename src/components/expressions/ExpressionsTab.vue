@@ -59,6 +59,12 @@ function setLoop(e: Event) {
 
 const num = (e: Event) => Number((e.target as HTMLInputElement).value)
 const commit = () => store.commit()
+
+function toggleInclude(name: ExpressionName) {
+  const s = project.value.expressions[name]
+  s.include = !s.include
+  store.commit()
+}
 </script>
 
 <template>
@@ -136,10 +142,22 @@ const commit = () => store.commit()
       >
         <div class="expr-thumb" :class="`avatar-expr--${name}`" :style="thumbVars(name)">
           <AvatarSvg :project="project" :id-prefix="`th-${name}`" />
+          <span v-if="!project.expressions[name].include" class="excluded-badge">not exported</span>
         </div>
         <span class="card-label">
+          <label
+            class="export-toggle"
+            :title="name === 'idle' ? 'Idle is always exported' : 'Ship this expression in the exported component'"
+            @click.stop
+          >
+            <input
+              type="checkbox"
+              :checked="project.expressions[name].include"
+              :disabled="name === 'idle'"
+              @change="toggleInclude(name)"
+            />
+          </label>
           {{ name }}
-          <span v-if="project.expressions[name].include" class="included" title="Included in export">●</span>
         </span>
       </button>
     </section>
@@ -259,8 +277,29 @@ const commit = () => store.commit()
   background: var(--accent-soft);
 }
 
-.card.excluded {
-  opacity: 0.6;
+.card.excluded .expr-thumb :deep(svg) {
+  opacity: 0.45;
+  filter: grayscale(0.6);
+}
+
+.excluded-badge {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6d6a63;
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 4px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+
+.export-toggle {
+  display: inline-flex;
+  cursor: pointer;
 }
 
 .expr-thumb {
