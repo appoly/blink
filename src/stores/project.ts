@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { defaultProject, type AvatarProject } from '../types/avatar'
+import { defaultProject, type AvatarProject, type ExpressionSettings } from '../types/avatar'
 
 const HISTORY_LIMIT = 51 // current state + 50 undo steps
 
@@ -99,17 +99,23 @@ export const useProjectStore = defineStore('project', {
 
     loadFromJson(text: string, filePath: string | null) {
       const parsed = JSON.parse(text) as AvatarProject
-      if (parsed.version !== 1 || !parsed.body || !parsed.eyes || !parsed.mouth) {
+      if (![1, 2].includes(parsed.version) || !parsed.body || !parsed.eyes || !parsed.mouth) {
         throw new Error('Not a valid .avatar project file')
       }
       // Merge over defaults so older files (and AI-generated ones with
-      // partial expression settings) pick up newly added fields.
+      // partial expression settings) pick up newly added fields. Settings for
+      // custom expressions have no preset defaults and pass through as-is.
       const base = defaultProject()
       const expressions = { ...base.expressions }
       for (const [name, settings] of Object.entries(parsed.expressions ?? {})) {
-        if (expressions[name]) expressions[name] = { ...expressions[name], ...settings }
+        expressions[name] = { ...(expressions[name] ?? {}), ...settings } as ExpressionSettings
       }
-      this.replaceProject({ ...base, ...parsed, expressions }, filePath)
+      // v1 files predate custom expressions; default to none.
+      const customExpressions = Array.isArray(parsed.customExpressions) ? parsed.customExpressions : []
+      for (const def of customExpressions) {
+        if (!expressions[def.name]) expressions[def.name] = { speed: 1, intensity: 1, loop: 'infinite', include: true }
+      }
+      this.replaceProject({ ...base, ...parsed, version: 2, customExpressions, expressions }, filePath)
     },
   },
 })

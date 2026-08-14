@@ -3,6 +3,7 @@ import { onBeforeUnmount, onMounted } from 'vue'
 import TopBar from './components/TopBar.vue'
 import PoseTab from './components/pose/PoseTab.vue'
 import ExpressionsTab from './components/expressions/ExpressionsTab.vue'
+import AnimateTab from './components/animate/AnimateTab.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import NewProjectDialog from './components/NewProjectDialog.vue'
 import { useEditorStore } from './stores/editor'
@@ -64,6 +65,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown))
     <main class="app-main">
       <PoseTab v-show="editor.tab === 'pose'" />
       <ExpressionsTab v-if="editor.tab === 'expressions'" />
+      <AnimateTab v-if="editor.tab === 'animate'" />
     </main>
     <ExportDialog v-if="editor.exportOpen" />
     <NewProjectDialog v-if="editor.newDialogOpen" />

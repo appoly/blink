@@ -95,7 +95,10 @@ export interface FlushKeyframe {
 }
 
 export interface ExpressionDef {
-  name: ExpressionName
+  /** Preset name, or a CSS-safe slug for custom expressions. */
+  name: string
+  /** Display name for custom expressions (the slug is derived from it). */
+  label?: string
   /** Base duration in seconds at 1× speed. */
   duration: number
   /** Percent offset used for the static thumbnail frame. */
@@ -133,13 +136,13 @@ export const TARGET_SELECTORS: Record<TrackTarget, string> = {
 
 // Shared timing vocabulary. SPRING overshoots (snappy reactions), SNAP_IN
 // accelerates (anticipation dips), FALL is gravity, SMOOTH/DECEL are settles.
-const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)'
-const SNAP_IN = 'cubic-bezier(0.55, 0, 0.7, 0.3)'
-const SMOOTH = 'cubic-bezier(0.45, 0, 0.55, 1)'
-const DECEL = 'cubic-bezier(0.22, 1, 0.36, 1)'
-const FALL = 'cubic-bezier(0.5, 0, 0.9, 0.6)'
+export const SPRING = 'cubic-bezier(0.34, 1.56, 0.64, 1)'
+export const SNAP_IN = 'cubic-bezier(0.55, 0, 0.7, 0.3)'
+export const SMOOTH = 'cubic-bezier(0.45, 0, 0.55, 1)'
+export const DECEL = 'cubic-bezier(0.22, 1, 0.36, 1)'
+export const FALL = 'cubic-bezier(0.5, 0, 0.9, 0.6)'
 
-const GROUND = '50% 100%'
+export const GROUND = '50% 100%'
 
 export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
   // Barely alive: slow breath from the ground up, eyes lag half a beat behind.

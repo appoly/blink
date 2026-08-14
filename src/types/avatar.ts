@@ -111,13 +111,16 @@ export interface ExpressionSettings {
 }
 
 export interface AvatarProject {
-  version: 1
+  /** 1: presets only. 2: adds customExpressions. */
+  version: 1 | 2
   name: string
   body: Body
   parts: Part[]
   eyes: Eyes
   mouth: Mouth
   expressions: Record<string, ExpressionSettings>
+  /** User-authored expression animations (Animate tab). Same shape as presets. */
+  customExpressions: import('../lib/expressions').ExpressionDef[]
 }
 
 export const EXPRESSION_NAMES = [
@@ -158,7 +161,7 @@ export function defaultProject(): AvatarProject {
   const magenta = '#e4286e'
   const expressions = defaultExpressionSettings()
   return {
-    version: 1,
+    version: 2,
     name: 'MyAvatar',
     // Default character (and app mascot): "Pip" — a pale squishy blob with
     // rounded ears (blue-grey left, magenta right) and navy/magenta stripes
@@ -287,6 +290,7 @@ export function defaultProject(): AvatarProject {
       color: navy,
     },
     expressions,
+    customExpressions: [],
   }
 }
 

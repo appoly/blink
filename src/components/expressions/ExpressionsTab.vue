@@ -4,44 +4,114 @@ import AvatarSvg from '../AvatarSvg.vue'
 import SidebarNav from '../SidebarNav.vue'
 import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
-import { EXPRESSIONS } from '../../lib/expressions'
+import { useAnimateStore } from '../../stores/animate'
 import { avatarStylesheet } from '../../lib/animationCss'
 import { useInjectedStyle } from '../../composables/useInjectedStyle'
-import { EXPRESSION_NAMES, type ExpressionName, type LoopMode } from '../../types/avatar'
+import { type LoopMode } from '../../types/avatar'
+import {
+  addCustomExpression,
+  allExpressionNames,
+  duplicateExpression,
+  expressionLabel,
+  getExpressionDef,
+  isCustomExpression,
+  newCustomExpression,
+  removeCustomExpression,
+  STARTER_TEMPLATES,
+  type StarterTemplate,
+} from '../../lib/customExpressions'
 import { renderExpressionGif } from '../../lib/gifExport'
 import { componentName } from '../../lib/exporter'
 
 const editor = useEditorStore()
 const store = useProjectStore()
+const animate = useAnimateStore()
 const project = computed(() => store.project)
 
-const current = computed(() => editor.currentExpression)
+/** Presets, then the user's custom animations. */
+const allNames = computed(() => allExpressionNames(project.value))
+
+// Fall back to idle if the current expression vanished (e.g. undo of a
+// custom-expression creation while it was selected).
+const current = computed(() =>
+  getExpressionDef(project.value, editor.currentExpression) && project.value.expressions[editor.currentExpression]
+    ? editor.currentExpression
+    : 'idle',
+)
 const settings = computed(() => project.value.expressions[current.value])
 
+function labelOf(name: string): string {
+  const def = getExpressionDef(project.value, name)
+  return def ? expressionLabel(def) : name
+}
+
 /** Duration of one cycle at the current speed, in seconds. */
-const cycleDuration = computed(() => EXPRESSIONS[current.value].duration / settings.value.speed)
+const cycleDuration = computed(() => getExpressionDef(project.value, current.value)!.duration / settings.value.speed)
 
 // One stylesheet drives the big preview, another (all expressions at once)
 // drives the thumbnail filmstrip — both from the same generator the export uses.
 useInjectedStyle(computed(() => avatarStylesheet(project.value, '.expr-stage', 'pv', [current.value])))
-useInjectedStyle(computed(() => avatarStylesheet(project.value, '.expr-thumb', 'th', [...EXPRESSION_NAMES])))
+useInjectedStyle(computed(() => avatarStylesheet(project.value, '.expr-thumb', 'th', allNames.value)))
 
 const stageVars = computed(() => ({
   '--avatar-play': editor.playing ? 'running' : 'paused',
   '--avatar-seek': editor.playing ? '0s' : `${-editor.scrub}s`,
 }))
 
-function thumbVars(name: ExpressionName) {
-  const def = EXPRESSIONS[name]
+function thumbVars(name: string) {
+  const def = getExpressionDef(project.value, name)!
   const speed = project.value.expressions[name].speed
   const seek = (def.thumbOffset / 100) * (def.duration / speed)
   return { '--avatar-play': 'paused', '--avatar-seek': `${-seek.toFixed(3)}s` }
 }
 
-function pick(name: ExpressionName) {
+function pick(name: string) {
   editor.currentExpression = name
   editor.playing = true
   editor.scrub = 0
+}
+
+function openInAnimate(name: string) {
+  animate.open(name)
+  editor.tab = 'animate'
+}
+
+/** "Duplicate & edit" (presets and customs) — copy, register, open in Animate. */
+function duplicateAndEdit(name: string) {
+  menu.value = null
+  const source = getExpressionDef(project.value, name)
+  if (!source) return
+  const copy = duplicateExpression(project.value, source)
+  addCustomExpression(project.value, copy)
+  store.commit()
+  openInAnimate(copy.name)
+}
+
+// "+ New animation" opens a starter-template picker.
+const newMenu = ref<{ x: number; y: number } | null>(null)
+
+function openNewMenu(e: MouseEvent) {
+  newMenu.value = {
+    x: Math.min(e.clientX, window.innerWidth - 250),
+    y: Math.min(e.clientY, window.innerHeight - (STARTER_TEMPLATES.length * 44 + 20)),
+  }
+}
+
+function createNew(template: StarterTemplate) {
+  newMenu.value = null
+  const def = newCustomExpression(project.value, template)
+  addCustomExpression(project.value, def)
+  store.commit()
+  openInAnimate(def.name)
+}
+
+function deleteCustom(name: string) {
+  menu.value = null
+  if (!confirm(`Delete "${labelOf(name)}"? You can undo this with ⌘Z.`)) return
+  removeCustomExpression(project.value, name)
+  if (editor.currentExpression === name) editor.currentExpression = 'idle'
+  if (animate.editing === name) animate.close()
+  store.commit()
 }
 
 function onScrub(e: Event) {
@@ -63,28 +133,28 @@ function setLoop(e: Event) {
 const num = (e: Event) => Number((e.target as HTMLInputElement).value)
 const commit = () => store.commit()
 
-function toggleInclude(name: ExpressionName) {
+function toggleInclude(name: string) {
   const s = project.value.expressions[name]
   s.include = !s.include
   store.commit()
 }
 
 // Right-click menu on an expression card: export inclusion + GIF export.
-const menu = ref<{ name: ExpressionName; x: number; y: number } | null>(null)
+const menu = ref<{ name: string; x: number; y: number } | null>(null)
 
-function openMenu(name: ExpressionName, e: MouseEvent) {
+function openMenu(name: string, e: MouseEvent) {
   menu.value = {
     name,
     x: Math.min(e.clientX, window.innerWidth - 190),
-    y: Math.min(e.clientY, window.innerHeight - 90),
+    y: Math.min(e.clientY, window.innerHeight - 130),
   }
 }
 
 /** Per-card GIF export status ("GIF 42%" / "GIF failed"), shown on the thumbnail. */
-const gifStatus = ref<{ name: ExpressionName; text: string } | null>(null)
+const gifStatus = ref<{ name: string; text: string } | null>(null)
 
 /** Render one cycle of an expression to a GIF and save it. */
-async function exportGif(name: ExpressionName) {
+async function exportGif(name: string) {
   menu.value = null
   gifStatus.value = { name, text: 'GIF…' }
   try {
@@ -124,7 +194,7 @@ async function exportGif(name: ExpressionName) {
         <div :key="current + (editor.playing ? '-play' : '')" class="expr-stage" :class="`avatar-expr--${current}`" :style="stageVars">
           <AvatarSvg :project="project" id-prefix="pv" />
         </div>
-        <div class="expr-name">{{ current }}</div>
+        <div class="expr-name">{{ labelOf(current) }}</div>
       </section>
 
       <section class="controls-bar">
@@ -175,7 +245,7 @@ async function exportGif(name: ExpressionName) {
     <aside class="sidebar">
       <section class="preset-grid">
         <button
-          v-for="name in EXPRESSION_NAMES"
+          v-for="name in allNames"
           :key="name"
           class="card"
           :class="{ active: name === current, excluded: !project.expressions[name].include }"
@@ -185,14 +255,35 @@ async function exportGif(name: ExpressionName) {
         >
           <div class="expr-thumb" :class="`avatar-expr--${name}`" :style="thumbVars(name)">
             <AvatarSvg :project="project" :id-prefix="`th-${name}`" />
+            <span v-if="isCustomExpression(name)" class="custom-badge">custom</span>
             <span v-if="!project.expressions[name].include" class="excluded-badge">not exported</span>
             <span v-if="gifStatus?.name === name" class="gif-badge">{{ gifStatus.text }}</span>
+            <span
+              v-if="isCustomExpression(name)"
+              class="edit-badge"
+              title="Edit in Animate"
+              @click.stop="openInAnimate(name)"
+            >✎</span>
           </div>
-          <span class="card-label">{{ name }}</span>
+          <span class="card-label">{{ labelOf(name) }}</span>
+        </button>
+        <button class="card new-card" @click="openNewMenu">
+          <div class="new-thumb">＋</div>
+          <span class="card-label">New animation</span>
         </button>
       </section>
       <SidebarNav />
     </aside>
+
+    <template v-if="newMenu">
+      <div class="ctx-backdrop" @click="newMenu = null" @contextmenu.prevent="newMenu = null" />
+      <div class="ctx-menu template-menu" :style="{ left: `${newMenu.x}px`, top: `${newMenu.y}px` }">
+        <button v-for="t in STARTER_TEMPLATES" :key="t.key" @click="createNew(t)">
+          <span class="tpl-label">{{ t.label }}</span>
+          <span class="tpl-desc">{{ t.description }}</span>
+        </button>
+      </div>
+    </template>
 
     <template v-if="menu">
       <div class="ctx-backdrop" @click="menu = null" @contextmenu.prevent="menu = null" />
@@ -202,6 +293,9 @@ async function exportGif(name: ExpressionName) {
           {{ project.expressions[menu.name].include ? 'Remove from export' : 'Add to export' }}
         </button>
         <button :disabled="!!gifStatus" @click="exportGif(menu.name)">Export as GIF…</button>
+        <button v-if="isCustomExpression(menu.name)" @click="openInAnimate(menu.name); menu = null">Edit animation</button>
+        <button @click="duplicateAndEdit(menu.name)">Duplicate &amp; edit</button>
+        <button v-if="isCustomExpression(menu.name)" class="danger" @click="deleteCustom(menu.name)">Delete…</button>
       </div>
     </template>
   </div>
@@ -323,6 +417,29 @@ async function exportGif(name: ExpressionName) {
   color: var(--text-dim);
 }
 
+.template-menu {
+  min-width: 230px;
+}
+
+.template-menu button {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.tpl-label {
+  font-weight: 600;
+}
+
+.tpl-desc {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.template-menu button:hover .tpl-desc {
+  color: inherit;
+}
+
 .sidebar {
   flex: 0 0 30%;
   min-width: 0;
@@ -359,6 +476,63 @@ async function exportGif(name: ExpressionName) {
 .card.excluded .expr-thumb :deep(svg) {
   opacity: 0.45;
   filter: grayscale(0.6);
+}
+
+.custom-badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  padding: 1px 6px;
+}
+
+/* .expr-thumb blocks pointer events; the edit badge opts back in. */
+.edit-badge {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  pointer-events: auto;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  color: #6d6a63;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  padding: 3px 5px;
+}
+
+.edit-badge:hover {
+  color: var(--accent);
+}
+
+.new-card {
+  border-style: dashed;
+}
+
+.new-thumb {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 34px;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 7px;
+}
+
+.new-card:hover .new-thumb {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.ctx-menu button.danger:hover:not(:disabled) {
+  background: rgba(214, 69, 69, 0.15);
+  color: #e07070;
 }
 
 .excluded-badge {

@@ -22,11 +22,13 @@ const editor = useEditorStore()
       </svg>
       <span>Expressions</span>
     </button>
-    <button class="soon" disabled title="Coming soon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-        <path d="M12 6v12M6 12h12" />
+    <button :class="{ active: editor.tab === 'animate' }" @click="editor.tab = 'animate'">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3.5" y="5" width="17" height="14" rx="2.5" />
+        <path d="M3.5 15h17M7 15v4M12 15v4M17 15v4" />
+        <path d="M10.2 8.2l3.6 2.3-3.6 2.3z" fill="currentColor" />
       </svg>
-      <span>Soon</span>
+      <span>Animate</span>
     </button>
     <button class="soon" disabled title="Coming soon">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">

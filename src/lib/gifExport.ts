@@ -1,7 +1,7 @@
 import { GIFEncoder, applyPalette, quantize } from 'gifenc'
-import type { AvatarProject, ExpressionName } from '../types/avatar'
+import type { AvatarProject } from '../types/avatar'
 import { avatarStylesheet } from './animationCss'
-import { EXPRESSIONS } from './expressions'
+import { getExpressionDef } from './customExpressions'
 import { buildAvatar, serializeNode } from './render'
 
 /**
@@ -14,13 +14,13 @@ import { buildAvatar, serializeNode } from './render'
  */
 export async function renderExpressionGif(
   project: AvatarProject,
-  expression: ExpressionName,
+  expression: string,
   onProgress?: (done: number, total: number) => void,
 ): Promise<Uint8Array<ArrayBuffer>> {
   const fps = 25
   const maxSize = 480
 
-  const def = EXPRESSIONS[expression]
+  const def = getExpressionDef(project, expression)!
   const settings = project.expressions[expression]
   const duration = def.duration / settings.speed
 

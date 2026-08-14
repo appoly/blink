@@ -3,6 +3,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { defaultProject } from '../src/types/avatar'
 import { generateComponent, generateSvgSnapshot } from '../src/lib/exporter'
+import { EXPRESSIONS } from '../src/lib/expressions'
+import { addCustomExpression, duplicateExpression } from '../src/lib/customExpressions'
 
 const project = defaultProject()
 project.name = 'BoxBuddy'
@@ -92,6 +94,17 @@ for (const name of ['happy', 'curious', 'surprised', 'sleepy', 'wink'] as const)
   project.expressions[name].include = true
 }
 project.expressions.wink.loop = 'once'
+
+// One custom expression proves customs flow through the export pipeline:
+// "Mega hop" is happy with the hop twice as high.
+const megaHop = duplicateExpression(project, EXPRESSIONS.happy)
+megaHop.label = 'Mega hop'
+megaHop.name = 'mega-hop'
+const hopSquash = megaHop.tracks.find((t) => t.target === 'squash')!
+for (const kf of hopSquash.keyframes) {
+  if (kf.ty) kf.ty *= 2
+}
+addCustomExpression(project, megaHop)
 
 mkdirSync('samples', { recursive: true })
 writeFileSync('samples/BoxBuddy.vue', generateComponent(project))

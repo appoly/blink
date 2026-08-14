@@ -1,5 +1,6 @@
 import type { AvatarProject, ExpressionSettings } from '../types/avatar'
-import { EXPRESSIONS, TARGET_SELECTORS, type ExpressionDef, type Track, type TransformKeyframe } from './expressions'
+import { TARGET_SELECTORS, type ExpressionDef, type MorphKeyframe, type Track, type TransformKeyframe } from './expressions'
+import { getExpressionDef } from './customExpressions'
 import { mouthBaseCurvature, mouthMorphPath } from './face'
 import { blobPath, darken, mixHex, type BlobDeform } from './shapes'
 
@@ -31,7 +32,7 @@ const scale = (v: number) => (v === 1 ? '1' : `calc(1 + ${f(v - 1)} * ${I})`)
  * targets, eye size for pupils. Resolved at generation time so motion scales
  * with the character's proportions instead of hardcoding pixels.
  */
-function unitScale(track: Track, project: AvatarProject): { x: number; y: number } {
+export function unitScale(track: Track, project: AvatarProject): { x: number; y: number } {
   if (track.unit !== '%') return { x: 1, y: 1 }
   if (track.target === 'pupils') return { x: project.eyes.size / 100, y: project.eyes.size / 100 }
   return { x: project.body.width / 100, y: project.body.height / 100 }
@@ -56,7 +57,7 @@ function transformValue(
   return `translate(${px(tx)}, ${px(ty)}) rotate(${deg(kf.r ?? 0)}) scale(${scale(ampScale(kf.sx, blobSquash))}, ${scale(ampScale(kf.sy, blobSquash))})`
 }
 
-type SampledTransform = { tx: number; ty: number; r: number; sx: number; sy: number }
+export type SampledTransform = { tx: number; ty: number; r: number; sx: number; sy: number }
 
 const NAMED_EASES: Record<string, [number, number, number, number]> = {
   ease: [0.25, 0.1, 0.25, 1],
@@ -66,7 +67,7 @@ const NAMED_EASES: Record<string, [number, number, number, number]> = {
 }
 
 /** Evaluate a CSS timing function at t (0–1). Output may overshoot [0,1]. */
-function easeValue(ease: string | undefined, t: number): number {
+export function easeValue(ease: string | undefined, t: number): number {
   if (t <= 0) return 0
   if (t >= 1) return 1
   if (!ease || ease === 'linear') return t
@@ -93,7 +94,7 @@ function easeValue(ease: string | undefined, t: number): number {
 }
 
 /** Sample a track at offset o, following each segment's timing function. */
-function sampleTrack(track: Track | undefined, o: number): SampledTransform {
+export function sampleTrack(track: Track | undefined, o: number): SampledTransform {
   const rest = { tx: 0, ty: 0, r: 0, sx: 1, sy: 1 }
   if (!track?.keyframes.length) return rest
   const at = (kf: TransformKeyframe): SampledTransform => ({
@@ -359,15 +360,43 @@ export function expressionCss(
     const base = mouthBaseCurvature(project.mouth)
     const animName = `${ns}-${def.name}-mouthd`
     // Path data can't use calc(), so intensity is baked into the morph frames.
+    const effective = (kf: MorphKeyframe) =>
+      Math.max(-1, Math.min(1, base + (kf.curvature - base) * settings.intensity))
     const frames = def.morph
       .map((kf) => {
-        const curvature = Math.max(-1, Math.min(1, base + (kf.curvature - base) * settings.intensity))
         const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
-        return `  ${f(kf.o)}% { d: path("${mouthMorphPath(project.mouth, curvature)}");${ease} }`
+        return `  ${f(kf.o)}% { d: path("${mouthMorphPath(project.mouth, effective(kf))}");${ease} }`
       })
       .join('\n')
     lines.push(`@keyframes ${animName} {\n${frames}\n}`)
     lines.push(`${scope} .avatar-mouth {\n  animation: ${animName} ${duration}s ease-in-out ${iters} both;\n${PLAY_VARS}\n}`)
+
+    // WebKit (Safari and the Tauri desktop app's WKWebView) cannot animate the
+    // `d` property. The mouth curves' depth is linear in curvature with the
+    // endpoints pinned at y=0, so scaling the resting path vertically about
+    // its endpoint line is an exact substitute for stroke mouths and a close
+    // one for open/cat. Near-flat resting mouths have no depth to scale, so
+    // they keep the (static) resting shape there. This rule comes after the
+    // `d` rule so it wins the cascade where the @supports guard matches.
+    if (Math.abs(base) >= 0.15) {
+      const fallbackName = `${ns}-${def.name}-mouthscale`
+      const fallbackFrames = def.morph
+        .map((kf) => {
+          const k = effective(kf) / base
+          const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
+          return `  ${f(kf.o)}% { transform: scale(1, ${f(k)});${ease} }`
+        })
+        .join('\n')
+      // The endpoint line is the fill-box's top edge for downward-bulging
+      // resting curves (positive base) and the bottom edge for negative.
+      const origin = base >= 0 ? '50% 0%' : '50% 100%'
+      lines.push(
+        `@supports not (d: path("m 0 0")) {\n` +
+          `@keyframes ${fallbackName} {\n${fallbackFrames}\n}\n` +
+          `${scope} .avatar-mouth {\n  transform-box: fill-box;\n  transform-origin: ${origin};\n` +
+          `  animation: ${fallbackName} ${duration}s ease-in-out ${iters} both;\n${PLAY_VARS}\n}\n}`,
+      )
+    }
   }
 
   return lines.join('\n\n')
@@ -382,7 +411,7 @@ export function avatarStylesheet(
 ): string {
   const parts = [baseAvatarCss(project, rootSelector, ns)]
   for (const name of expressionNames) {
-    const def = EXPRESSIONS[name as keyof typeof EXPRESSIONS]
+    const def = getExpressionDef(project, name)
     const settings = project.expressions[name]
     if (!def || !settings || def.tracks.length === 0 && !def.morph) continue
     parts.push(expressionCss(project, def, settings, `${rootSelector}.avatar-expr--${name}`, ns))

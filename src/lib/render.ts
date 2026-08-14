@@ -1,7 +1,8 @@
 import type { AvatarProject, Body, Fill, Part, Stroke } from '../types/avatar'
 import { darken, heartPath, shapePath, starPath } from './shapes'
 import { catMouthPath, eyePath, mouthCurvePath, oMouthPath, openMouthPath, tonguePath } from './face'
-import { EXPRESSIONS, type ExpressionProp } from './expressions'
+import type { ExpressionProp } from './expressions'
+import { allExpressionNames, getExpressionDef } from './customExpressions'
 
 /**
  * A plain-object SVG node tree. The editor renders it with Vue's `h()`,
@@ -304,9 +305,9 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
     }),
   ])
 
-  const propNames = expressionNames ?? Object.keys(EXPRESSIONS)
+  const propNames = expressionNames ?? allExpressionNames(project)
   const props = propNames.flatMap((name) => {
-    const def = EXPRESSIONS[name as keyof typeof EXPRESSIONS]
+    const def = getExpressionDef(project, name)
     return (def?.props ?? []).map((prop) => propNode(name, prop, project.body))
   })
 
