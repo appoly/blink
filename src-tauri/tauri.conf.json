@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Avatar Builder",
+  "productName": "Blink",
   "version": "0.1.0",
   "identifier": "com.appoly.avatar-builder",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Avatar Builder",
+        "title": "Blink",
         "width": 1280,
         "height": 840,
         "minWidth": 1000,
