@@ -15,8 +15,20 @@ project.body = {
   fill: { type: 'gradient', color: '#d9a066' },
   stroke: null,
 }
-project.eyes.offsetY = -18
+project.eyes = {
+  style: 'round',
+  spacing: 38,
+  offsetY: -18,
+  size: 16,
+  squash: 1,
+  pupilSize: 0.5,
+  highlight: true,
+  color: '#ffffff',
+  pupilColor: '#2b2b2b',
+  pupilDrift: true,
+}
 project.mouth.offsetY = 28
+project.mouth.width = 44
 
 // A smiling cardboard box: tape strip across the top, a wee label, blush marks.
 project.parts = [

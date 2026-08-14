@@ -465,12 +465,13 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+/* Light canvas under dark chrome so any character colour stays visible. */
 .canvas-stage {
   flex: 1;
   min-height: 0;
   position: relative;
-  background-color: var(--bg);
-  background-image: radial-gradient(circle, #2e313a 1px, transparent 1px);
+  background-color: #edebe6;
+  background-image: radial-gradient(circle, #d2cfc8 1px, transparent 1px);
 }
 
 .canvas-stage.panning {
@@ -485,7 +486,7 @@ onBeforeUnmount(() => {
 }
 
 .ground {
-  fill: rgba(0, 0, 0, 0.28);
+  fill: rgba(30, 25, 15, 0.18);
   filter: blur(6px);
 }
 

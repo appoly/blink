@@ -55,7 +55,7 @@ function onAnimationEnd(event) {
         <stop offset="100%" stop-color="#b28354" />
       </linearGradient>
       <clipPath id="avatar-eye-clip">
-        <path d="M -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0 Z" />
+        <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" />
       </clipPath>
     </defs>
     <g class="avatar-root">
@@ -68,12 +68,12 @@ function onAnimationEnd(event) {
             <g class="avatar-eye-anim">
               <g class="avatar-eye-blink">
                 <g transform="scale(1 1)">
-                  <path d="M -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0 Z" fill="#ffffff" />
+                  <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
                   <g clip-path="url(#avatar-eye-clip)">
                     <g class="avatar-pupil-anim">
                       <g class="avatar-pupil">
-                        <circle r="9.9" fill="#2b2b2b" />
-                        <circle r="3.76" cx="-3.17" cy="-3.76" fill="#ffffff" />
+                        <circle r="8" fill="#2b2b2b" />
+                        <circle r="3.04" cx="-2.56" cy="-3.04" fill="#ffffff" />
                       </g>
                     </g>
                   </g>
@@ -85,12 +85,12 @@ function onAnimationEnd(event) {
             <g class="avatar-eye-anim">
               <g class="avatar-eye-blink">
                 <g transform="scale(1 1)">
-                  <path d="M -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0 Z" fill="#ffffff" />
+                  <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
                   <g clip-path="url(#avatar-eye-clip)">
                     <g class="avatar-pupil-anim">
                       <g class="avatar-pupil">
-                        <circle r="9.9" fill="#2b2b2b" />
-                        <circle r="3.76" cx="-3.17" cy="-3.76" fill="#ffffff" />
+                        <circle r="8" fill="#2b2b2b" />
+                        <circle r="3.04" cx="-2.56" cy="-3.04" fill="#ffffff" />
                       </g>
                     </g>
                   </g>
@@ -100,7 +100,7 @@ function onAnimationEnd(event) {
           </g>
           <g class="avatar-mouth-wrap" transform="translate(0 28)">
             <g class="avatar-mouth-anim">
-              <path class="avatar-mouth" d="M -23 0 Q 0 25.2 23 0" fill="none" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round" />
+              <path class="avatar-mouth" d="M -22 0 Q 0 14 22 0" fill="none" stroke="#2b2b2b" stroke-width="3.5" stroke-linecap="round" />
             </g>
           </g>
         </g>
@@ -195,9 +195,9 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-happy-mouthd {
-  0% { d: path("M -23 0 Q 0 30.6 23 0"); }
-  55% { d: path("M -23 0 Q 0 36 23 0"); }
-  100% { d: path("M -23 0 Q 0 30.6 23 0"); }
+  0% { d: path("M -22 0 Q 0 23.8 22 0"); }
+  55% { d: path("M -22 0 Q 0 28 22 0"); }
+  100% { d: path("M -22 0 Q 0 23.8 22 0"); }
 }
 
 .avatar.avatar-expr--happy .avatar-mouth {
@@ -272,10 +272,10 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-curious-mouthd {
-  0% { d: path("M -23 0 Q 0 7.2 23 0"); }
-  30% { d: path("M -23 0 Q 0 14.4 23 0"); }
-  70% { d: path("M -23 0 Q 0 14.4 23 0"); }
-  100% { d: path("M -23 0 Q 0 7.2 23 0"); }
+  0% { d: path("M -22 0 Q 0 5.6 22 0"); }
+  30% { d: path("M -22 0 Q 0 11.2 22 0"); }
+  70% { d: path("M -22 0 Q 0 11.2 22 0"); }
+  100% { d: path("M -22 0 Q 0 5.6 22 0"); }
 }
 
 .avatar.avatar-expr--curious .avatar-mouth {
@@ -328,11 +328,11 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-surprised-mouthd {
-  0% { d: path("M -23 0 Q 0 -1.8 23 0"); }
-  15% { d: path("M -23 0 Q 0 -14.4 23 0"); }
-  55% { d: path("M -23 0 Q 0 -12.6 23 0"); }
-  90% { d: path("M -23 0 Q 0 -1.8 23 0"); }
-  100% { d: path("M -23 0 Q 0 -1.8 23 0"); }
+  0% { d: path("M -22 0 Q 0 -1.4 22 0"); }
+  15% { d: path("M -22 0 Q 0 -11.2 22 0"); }
+  55% { d: path("M -22 0 Q 0 -9.8 22 0"); }
+  90% { d: path("M -22 0 Q 0 -1.4 22 0"); }
+  100% { d: path("M -22 0 Q 0 -1.4 22 0"); }
 }
 
 .avatar.avatar-expr--surprised .avatar-mouth {
@@ -390,10 +390,10 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-sleepy-mouthd {
-  0% { d: path("M -23 0 Q 0 5.4 23 0"); }
-  40% { d: path("M -23 0 Q 0 -9 23 0"); }
-  60% { d: path("M -23 0 Q 0 -9 23 0"); }
-  100% { d: path("M -23 0 Q 0 5.4 23 0"); }
+  0% { d: path("M -22 0 Q 0 4.2 22 0"); }
+  40% { d: path("M -22 0 Q 0 -7 22 0"); }
+  60% { d: path("M -22 0 Q 0 -7 22 0"); }
+  100% { d: path("M -22 0 Q 0 4.2 22 0"); }
 }
 
 .avatar.avatar-expr--sleepy .avatar-mouth {
@@ -446,11 +446,11 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-wink-mouthd {
-  0% { d: path("M -23 0 Q 0 25.2 23 0"); }
-  28% { d: path("M -23 0 Q 0 34.2 23 0"); }
-  50% { d: path("M -23 0 Q 0 34.2 23 0"); }
-  62% { d: path("M -23 0 Q 0 25.2 23 0"); }
-  100% { d: path("M -23 0 Q 0 25.2 23 0"); }
+  0% { d: path("M -22 0 Q 0 19.6 22 0"); }
+  28% { d: path("M -22 0 Q 0 26.6 22 0"); }
+  50% { d: path("M -22 0 Q 0 26.6 22 0"); }
+  62% { d: path("M -22 0 Q 0 19.6 22 0"); }
+  100% { d: path("M -22 0 Q 0 19.6 22 0"); }
 }
 
 .avatar.avatar-expr--wink .avatar-mouth {

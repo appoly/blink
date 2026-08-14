@@ -155,7 +155,8 @@ const commit = () => store.commit()
   flex: 1;
   min-height: 0;
   position: relative;
-  background-image: radial-gradient(circle, #2e313a 1px, transparent 1px);
+  background-color: #edebe6;
+  background-image: radial-gradient(circle, #d2cfc8 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -175,7 +176,7 @@ const commit = () => store.commit()
   left: 18px;
   text-transform: capitalize;
   font-weight: 600;
-  color: var(--text-dim);
+  color: #8a877f;
   letter-spacing: 0.04em;
 }
 
@@ -258,6 +259,9 @@ const commit = () => store.commit()
   display: grid;
   place-items: center;
   pointer-events: none;
+  background: #edebe6;
+  border-radius: 7px;
+  padding: 6px;
 }
 
 .card-label {
