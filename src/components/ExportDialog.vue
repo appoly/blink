@@ -10,19 +10,28 @@ import {
   generateSvgSnapshot,
   includedExpressions,
 } from '../lib/exporter'
+import { generateReactComponent, generateReactReadme } from '../lib/reactExporter'
 
 const editor = useEditorStore()
 const store = useProjectStore()
 const project = computed(() => store.project)
 
 type Mode = 'sfc' | 'bundle' | 'svg' | 'png'
+type Framework = 'vue' | 'react'
 const mode = ref<Mode>('sfc')
+const framework = ref<Framework>('vue')
 const busy = ref(false)
 const done = ref<string | null>(null)
 
 const name = computed(() => componentName(project.value))
 const included = computed(() => includedExpressions(project.value))
-const code = computed(() => generateComponent(project.value))
+const isReact = computed(() => framework.value === 'react')
+/** Modes that emit a component — the only ones the framework choice applies to. */
+const emitsComponent = computed(() => mode.value === 'sfc' || mode.value === 'bundle')
+const componentExt = computed(() => (isReact.value ? 'tsx' : 'vue'))
+const componentFile = computed(() => `${name.value}.${componentExt.value}`)
+const code = computed(() => (isReact.value ? generateReactComponent(project.value) : generateComponent(project.value)))
+const readme = computed(() => (isReact.value ? generateReactReadme(project.value) : generateReadme(project.value)))
 
 const isTauri = () => '__TAURI_INTERNALS__' in window
 
@@ -63,13 +72,13 @@ async function doExport() {
   done.value = null
   try {
     if (!isTauri()) {
-      if (mode.value === 'sfc') browserDownload(`${name.value}.vue`, code.value)
+      if (mode.value === 'sfc') browserDownload(componentFile.value, code.value)
       else if (mode.value === 'svg') browserDownload(`${name.value}.svg`, generateSvgSnapshot(project.value))
       else if (mode.value === 'png') browserDownload(`${name.value}.png`, await renderPng())
       else {
-        browserDownload(`${name.value}.vue`, code.value)
+        browserDownload(componentFile.value, code.value)
         browserDownload('expressions.ts', generateExpressionsTs(project.value))
-        browserDownload('README.md', generateReadme(project.value))
+        browserDownload('README.md', readme.value)
       }
       done.value = 'Downloaded.'
       return
@@ -81,14 +90,14 @@ async function doExport() {
     if (mode.value === 'bundle') {
       const dir = await open({ directory: true, title: 'Choose a folder for the component bundle' })
       if (typeof dir !== 'string') return
-      await writeTextFile(`${dir}/${name.value}.vue`, code.value)
+      await writeTextFile(`${dir}/${componentFile.value}`, code.value)
       await writeTextFile(`${dir}/expressions.ts`, generateExpressionsTs(project.value))
-      await writeTextFile(`${dir}/README.md`, generateReadme(project.value))
+      await writeTextFile(`${dir}/README.md`, readme.value)
       done.value = `Wrote 3 files to ${dir}`
       return
     }
 
-    const ext = mode.value === 'sfc' ? 'vue' : mode.value
+    const ext = mode.value === 'sfc' ? componentExt.value : mode.value
     const path = await save({ defaultPath: `${name.value}.${ext}` })
     if (!path) return
     if (mode.value === 'sfc') await writeTextFile(path, code.value)
@@ -112,10 +121,16 @@ async function doExport() {
       </header>
 
       <div class="options">
-        <label><input v-model="mode" type="radio" value="sfc" /> Single-file component — <code>{{ name }}.vue</code>, zero dependencies</label>
+        <label><input v-model="mode" type="radio" value="sfc" /> Single-file component — <code>{{ componentFile }}</code>, zero dependencies</label>
         <label><input v-model="mode" type="radio" value="bundle" /> Multi-file bundle — component + <code>expressions.ts</code> + README</label>
         <label><input v-model="mode" type="radio" value="svg" /> SVG snapshot of the current pose</label>
         <label><input v-model="mode" type="radio" value="png" /> PNG snapshot of the current pose</label>
+      </div>
+
+      <div v-if="emitsComponent" class="framework">
+        <span class="dim">Framework</span>
+        <button :class="{ active: framework === 'vue' }" @click="framework = 'vue'">Vue</button>
+        <button :class="{ active: framework === 'react' }" @click="framework = 'react'">React</button>
       </div>
 
       <p class="included">
@@ -123,7 +138,7 @@ async function doExport() {
         <span class="dim"> — pick which ones ship on the Expressions tab.</span>
       </p>
 
-      <pre v-if="mode === 'sfc' || mode === 'bundle'" class="code-preview">{{ code }}</pre>
+      <pre v-if="emitsComponent" class="code-preview">{{ code }}</pre>
 
       <footer>
         <span class="status">{{ done }}</span>
@@ -181,6 +196,25 @@ h2 {
 .options label {
   color: var(--text);
   cursor: pointer;
+}
+
+.framework {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.framework button {
+  padding: 4px 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.framework button.active {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .included {

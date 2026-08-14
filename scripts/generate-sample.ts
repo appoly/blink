@@ -3,6 +3,7 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { defaultProject } from '../src/types/avatar'
 import { generateComponent, generateSvgSnapshot } from '../src/lib/exporter'
+import { generateReactComponent } from '../src/lib/reactExporter'
 import { EXPRESSIONS } from '../src/lib/expressions'
 import { addCustomExpression, duplicateExpression } from '../src/lib/customExpressions'
 
@@ -108,6 +109,7 @@ addCustomExpression(project, megaHop)
 
 mkdirSync('samples', { recursive: true })
 writeFileSync('samples/BoxBuddy.vue', generateComponent(project))
+writeFileSync('samples/BoxBuddy.tsx', generateReactComponent(project))
 writeFileSync('samples/BoxBuddy.svg', generateSvgSnapshot(project))
 writeFileSync('samples/BoxBuddy.avatar', JSON.stringify(project, null, 2))
-console.log('Wrote samples/BoxBuddy.vue, samples/BoxBuddy.svg and samples/BoxBuddy.avatar')
+console.log('Wrote samples/BoxBuddy.vue, samples/BoxBuddy.tsx, samples/BoxBuddy.svg and samples/BoxBuddy.avatar')
