@@ -102,16 +102,14 @@ export const useProjectStore = defineStore('project', {
       if (parsed.version !== 1 || !parsed.body || !parsed.eyes || !parsed.mouth) {
         throw new Error('Not a valid .avatar project file')
       }
-      // Merge over defaults so older files pick up newly added fields.
+      // Merge over defaults so older files (and AI-generated ones with
+      // partial expression settings) pick up newly added fields.
       const base = defaultProject()
-      this.replaceProject(
-        {
-          ...base,
-          ...parsed,
-          expressions: { ...base.expressions, ...parsed.expressions },
-        },
-        filePath,
-      )
+      const expressions = { ...base.expressions }
+      for (const [name, settings] of Object.entries(parsed.expressions ?? {})) {
+        if (expressions[name]) expressions[name] = { ...expressions[name], ...settings }
+      }
+      this.replaceProject({ ...base, ...parsed, expressions }, filePath)
     },
   },
 })

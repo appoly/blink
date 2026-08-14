@@ -12,6 +12,7 @@ export const useEditorStore = defineStore('editor', {
     panX: 0,
     panY: 0,
     exportOpen: false,
+    newDialogOpen: false,
     /** Session clipboard for copy/paste of shapes. */
     clipboard: null as Part | null,
     // Expressions tab

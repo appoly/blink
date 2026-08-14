@@ -4,6 +4,7 @@ import TopBar from './components/TopBar.vue'
 import PoseTab from './components/pose/PoseTab.vue'
 import ExpressionsTab from './components/expressions/ExpressionsTab.vue'
 import ExportDialog from './components/ExportDialog.vue'
+import NewProjectDialog from './components/NewProjectDialog.vue'
 import { useEditorStore } from './stores/editor'
 import { useProjectStore } from './stores/project'
 import { loadAutosave, saveAutosave } from './lib/autosave'
@@ -65,6 +66,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown))
       <ExpressionsTab v-if="editor.tab === 'expressions'" />
     </main>
     <ExportDialog v-if="editor.exportOpen" />
+    <NewProjectDialog v-if="editor.newDialogOpen" />
   </div>
 </template>
 

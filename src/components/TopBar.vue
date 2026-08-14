@@ -33,7 +33,7 @@ function rename(e: Event) {
       <button :disabled="!project.canUndo" title="Undo (⌘Z)" @click="project.undo()">↩</button>
       <button :disabled="!project.canRedo" title="Redo (⇧⌘Z)" @click="project.redo()">↪</button>
       <span class="sep" />
-      <button @click="project.newProject()">New</button>
+      <button @click="editor.newDialogOpen = true">New</button>
       <button @click="project.open()">Open</button>
       <button title="Save (⌘S)" @click="project.save()">Save</button>
       <span class="sep" />
