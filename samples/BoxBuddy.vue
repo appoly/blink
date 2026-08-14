@@ -78,36 +78,46 @@ function onAnimationEnd(event) {
         <g class="avatar-face">
           <g class="avatar-eye avatar-eye--left" transform="translate(-38 -18)">
             <g class="avatar-eye-anim">
-              <g class="avatar-eye-blink">
-                <g transform="scale(1 1)">
-                  <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
-                  <g clip-path="url(#avatar-eye-clip)">
-                    <g class="avatar-pupil-anim">
-                      <g class="avatar-pupil">
-                        <circle r="8" fill="#2b2b2b" />
-                        <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+              <g class="avatar-eye-open">
+                <g class="avatar-eye-blink">
+                  <g transform="scale(1 1)">
+                    <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
+                    <g clip-path="url(#avatar-eye-clip)">
+                      <g class="avatar-pupil-anim">
+                        <g class="avatar-pupil">
+                          <circle r="8" fill="#2b2b2b" />
+                          <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+                        </g>
                       </g>
                     </g>
                   </g>
                 </g>
               </g>
+              <path class="avatar-eye-closed" d="M -13.76 0 Q 0 2.88 13.76 0" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+              <path class="avatar-eye-smile" d="M -13.76 1.92 Q 0 -6.72 13.76 1.92" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+              <path class="avatar-eyebrow" d="M -15.2 -21.6 Q 0 -25.92 15.2 -21.6" fill="none" stroke="#2b2b2b" stroke-width="3.84" stroke-linecap="round" opacity="0" />
             </g>
           </g>
           <g class="avatar-eye avatar-eye--right" transform="translate(38 -18)">
             <g class="avatar-eye-anim">
-              <g class="avatar-eye-blink">
-                <g transform="scale(1 1)">
-                  <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
-                  <g clip-path="url(#avatar-eye-clip)">
-                    <g class="avatar-pupil-anim">
-                      <g class="avatar-pupil">
-                        <circle r="8" fill="#2b2b2b" />
-                        <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+              <g class="avatar-eye-open">
+                <g class="avatar-eye-blink">
+                  <g transform="scale(1 1)">
+                    <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
+                    <g clip-path="url(#avatar-eye-clip)">
+                      <g class="avatar-pupil-anim">
+                        <g class="avatar-pupil">
+                          <circle r="8" fill="#2b2b2b" />
+                          <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+                        </g>
                       </g>
                     </g>
                   </g>
                 </g>
               </g>
+              <path class="avatar-eye-closed" d="M -13.76 0 Q 0 2.88 13.76 0" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+              <path class="avatar-eye-smile" d="M -13.76 1.92 Q 0 -6.72 13.76 1.92" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+              <path class="avatar-eyebrow" d="M -15.2 -21.6 Q 0 -25.92 15.2 -21.6" fill="none" stroke="#2b2b2b" stroke-width="3.84" stroke-linecap="round" opacity="0" />
             </g>
           </g>
           <g class="avatar-mouth-wrap" transform="translate(0 28)">
@@ -119,32 +129,32 @@ function onAnimationEnd(event) {
         <g class="avatar-props">
           <g transform="translate(-85.5 -60.0)">
             <g class="avatar-prop avatar-prop--surprised-spark1" opacity="0">
-              <path d="M 0 -11.879393923934 Q 2.1382909063081197 -2.1382909063081197 11.879393923934 0 Q 2.1382909063081197 2.1382909063081197 0 11.879393923934 Q -2.1382909063081197 2.1382909063081197 -11.879393923934 0 Q -2.1382909063081197 -2.1382909063081197 0 -11.879393923934 Z" fill="#f6c344" />
+              <path d="M 0 -11.200000000000001 Q 2.016 -2.016 11.200000000000001 0 Q 2.016 2.016 0 11.200000000000001 Q -2.016 2.016 -11.200000000000001 0 Q -2.016 -2.016 0 -11.200000000000001 Z" fill="#f6c344" />
             </g>
           </g>
           <g transform="translate(76.5 -84.0)">
             <g class="avatar-prop avatar-prop--surprised-spark2" opacity="0">
-              <path d="M 0 -9.333809511662428 Q 1.680085712099237 -1.680085712099237 9.333809511662428 0 Q 1.680085712099237 1.680085712099237 0 9.333809511662428 Q -1.680085712099237 1.680085712099237 -9.333809511662428 0 Q -1.680085712099237 -1.680085712099237 0 -9.333809511662428 Z" fill="#f6c344" />
+              <path d="M 0 -8.8 Q 1.584 -1.584 8.8 0 Q 1.584 1.584 0 8.8 Q -1.584 1.584 -8.8 0 Q -1.584 -1.584 0 -8.8 Z" fill="#f6c344" />
             </g>
           </g>
           <g transform="translate(-27.0 -108.0)">
             <g class="avatar-prop avatar-prop--surprised-spark3" opacity="0">
-              <path d="M 0 -7.636753236814713 Q 1.3746155826266484 -1.3746155826266484 7.636753236814713 0 Q 1.3746155826266484 1.3746155826266484 0 7.636753236814713 Q -1.3746155826266484 1.3746155826266484 -7.636753236814713 0 Q -1.3746155826266484 -1.3746155826266484 0 -7.636753236814713 Z" fill="#fbd97a" />
+              <path d="M 0 -7.199999999999999 Q 1.2959999999999998 -1.2959999999999998 7.199999999999999 0 Q 1.2959999999999998 1.2959999999999998 0 7.199999999999999 Q -1.2959999999999998 1.2959999999999998 -7.199999999999999 0 Q -1.2959999999999998 -1.2959999999999998 0 -7.199999999999999 Z" fill="#fbd97a" />
             </g>
           </g>
           <g transform="translate(64.8 -76.0)">
             <g class="avatar-prop avatar-prop--sleepy-z1" opacity="0">
-              <path d="M -11.030865786510143 -11.030865786510143 H 11.030865786510143 L -11.030865786510143 11.030865786510143 H 11.030865786510143" fill="none" stroke="#8b95ab" stroke-width="5.29" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M -10.4 -10.4 H 10.4 L -10.4 10.4 H 10.4" fill="none" stroke="#8b95ab" stroke-width="4.99" stroke-linecap="round" stroke-linejoin="round" />
             </g>
           </g>
           <g transform="translate(81.0 -94.4)">
             <g class="avatar-prop avatar-prop--sleepy-z2" opacity="0">
-              <path d="M -14.424978336205571 -14.424978336205571 H 14.424978336205571 L -14.424978336205571 14.424978336205571 H 14.424978336205571" fill="none" stroke="#8b95ab" stroke-width="6.92" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M -13.600000000000001 -13.600000000000001 H 13.600000000000001 L -13.600000000000001 13.600000000000001 H 13.600000000000001" fill="none" stroke="#8b95ab" stroke-width="6.53" stroke-linecap="round" stroke-linejoin="round" />
             </g>
           </g>
           <g transform="translate(100.8 -116.0)">
             <g class="avatar-prop avatar-prop--sleepy-z3" opacity="0">
-              <path d="M -17.819090885900998 -17.819090885900998 H 17.819090885900998 L -17.819090885900998 17.819090885900998 H 17.819090885900998" fill="none" stroke="#8b95ab" stroke-width="8.55" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M -16.8 -16.8 H 16.8 L -16.8 16.8 H 16.8" fill="none" stroke="#8b95ab" stroke-width="8.06" stroke-linecap="round" stroke-linejoin="round" />
             </g>
           </g>
         </g>
@@ -164,6 +174,10 @@ function onAnimationEnd(event) {
 .avatar .avatar-squash,
 .avatar .avatar-eye-anim,
 .avatar .avatar-eye-blink,
+.avatar .avatar-eye-open,
+.avatar .avatar-eye-closed,
+.avatar .avatar-eye-smile,
+.avatar .avatar-eyebrow,
 .avatar .avatar-pupil-anim,
 .avatar .avatar-pupil,
 .avatar .avatar-mouth-anim,
@@ -299,9 +313,9 @@ function onAnimationEnd(event) {
 
 @keyframes avatar-curious-root {
   0% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); animation-timing-function: cubic-bezier(0.55, 0, 0.7, 0.3); }
-  8% { transform: translate(calc(-0.9px * var(--avatar-intensity, 1)), 0px) rotate(calc(-1.5deg * var(--avatar-intensity, 1))) scale(1, 1); animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
-  24% { transform: translate(calc(4.5px * var(--avatar-intensity, 1)), 0px) rotate(calc(8deg * var(--avatar-intensity, 1))) scale(1, 1); }
-  72% { transform: translate(calc(4.5px * var(--avatar-intensity, 1)), 0px) rotate(calc(8deg * var(--avatar-intensity, 1))) scale(1, 1); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  8% { transform: translate(calc(-0.54px * var(--avatar-intensity, 1)), 0px) rotate(calc(-1.5deg * var(--avatar-intensity, 1))) scale(1, 1); animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  24% { transform: translate(calc(2.7px * var(--avatar-intensity, 1)), 0px) rotate(calc(8deg * var(--avatar-intensity, 1))) scale(1, 1); }
+  72% { transform: translate(calc(2.7px * var(--avatar-intensity, 1)), 0px) rotate(calc(8deg * var(--avatar-intensity, 1))) scale(1, 1); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
   90% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); }
   100% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); }
 }
@@ -374,10 +388,10 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-curious-mouthd {
-  0% { d: path("M -22 0 Q 0 8.4 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  36% { d: path("M -22 0 Q 0 1.4 22 0"); }
-  70% { d: path("M -22 0 Q 0 1.4 22 0"); }
-  100% { d: path("M -22 0 Q 0 8.4 22 0"); }
+  0% { d: path("M -22 0 Q 0 4.2 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  36% { d: path("M -22 0 Q 0 0 22 0"); }
+  70% { d: path("M -22 0 Q 0 0 22 0"); }
+  100% { d: path("M -22 0 Q 0 4.2 22 0"); }
 }
 
 .avatar.avatar-expr--curious .avatar-mouth {
@@ -549,23 +563,50 @@ function onAnimationEnd(event) {
   transform-origin: 50% 100%;
 }
 
-@keyframes avatar-sleepy-eyes {
-  0% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.58 * var(--avatar-intensity, 1))); }
-  14% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.62 * var(--avatar-intensity, 1))); }
-  22% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.9 * var(--avatar-intensity, 1))); }
-  30% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.6 * var(--avatar-intensity, 1))); }
-  48% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.56 * var(--avatar-intensity, 1))); }
-  62% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.64 * var(--avatar-intensity, 1))); }
-  70% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.92 * var(--avatar-intensity, 1))); }
-  80% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.62 * var(--avatar-intensity, 1))); }
-  100% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.58 * var(--avatar-intensity, 1))); }
+@keyframes avatar-sleepy-eyeOpen {
+  0% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.34 * var(--avatar-intensity, 1))); opacity: 1; }
+  14% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.42 * var(--avatar-intensity, 1))); opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  20% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.86 * var(--avatar-intensity, 1))); opacity: 1; }
+  22% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.88 * var(--avatar-intensity, 1))); opacity: 0; }
+  28% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.88 * var(--avatar-intensity, 1))); opacity: 0; }
+  30% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.84 * var(--avatar-intensity, 1))); opacity: 1; }
+  40% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.4 * var(--avatar-intensity, 1))); opacity: 1; }
+  48% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.3 * var(--avatar-intensity, 1))); opacity: 1; }
+  62% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.42 * var(--avatar-intensity, 1))); opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  68% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.86 * var(--avatar-intensity, 1))); opacity: 1; }
+  70% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.88 * var(--avatar-intensity, 1))); opacity: 0; }
+  76% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.88 * var(--avatar-intensity, 1))); opacity: 0; }
+  78% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.84 * var(--avatar-intensity, 1))); opacity: 1; }
+  88% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.4 * var(--avatar-intensity, 1))); opacity: 1; }
+  100% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.34 * var(--avatar-intensity, 1))); opacity: 1; }
 }
 
-.avatar.avatar-expr--sleepy .avatar-eye-anim {
-  animation: avatar-sleepy-eyes 5.2s cubic-bezier(0.45, 0, 0.55, 1) infinite both;
+.avatar.avatar-expr--sleepy .avatar-eye-open {
+  animation: avatar-sleepy-eyeOpen 5.2s cubic-bezier(0.45, 0, 0.55, 1) infinite both;
   animation-play-state: var(--avatar-play, running);
   animation-delay: var(--avatar-seek, 0s);
-  transform-origin: 50% 0%;
+  transform-origin: 50% 55%;
+}
+
+@keyframes avatar-sleepy-eyeClosed {
+  0% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.2 * var(--avatar-intensity, 1))); opacity: 0; }
+  20% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.2 * var(--avatar-intensity, 1))); opacity: 0; }
+  22% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.1 * var(--avatar-intensity, 1))); opacity: 1; }
+  27% { transform: translate(0px, calc(0.6px * var(--avatar-intensity, 1))) rotate(0deg) scale(1, calc(1 + 0.05 * var(--avatar-intensity, 1))); opacity: 1; }
+  28% { transform: translate(0px, calc(0.6px * var(--avatar-intensity, 1))) rotate(0deg) scale(1, calc(1 + 0.05 * var(--avatar-intensity, 1))); opacity: 1; }
+  30% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.2 * var(--avatar-intensity, 1))); opacity: 0; }
+  68% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.2 * var(--avatar-intensity, 1))); opacity: 0; }
+  70% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.1 * var(--avatar-intensity, 1))); opacity: 1; }
+  75% { transform: translate(0px, calc(0.6px * var(--avatar-intensity, 1))) rotate(0deg) scale(1, calc(1 + 0.05 * var(--avatar-intensity, 1))); opacity: 1; }
+  76% { transform: translate(0px, calc(0.6px * var(--avatar-intensity, 1))) rotate(0deg) scale(1, calc(1 + 0.05 * var(--avatar-intensity, 1))); opacity: 1; }
+  78% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.2 * var(--avatar-intensity, 1))); opacity: 0; }
+  100% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.2 * var(--avatar-intensity, 1))); opacity: 0; }
+}
+
+.avatar.avatar-expr--sleepy .avatar-eye-closed {
+  animation: avatar-sleepy-eyeClosed 5.2s cubic-bezier(0.45, 0, 0.55, 1) infinite both;
+  animation-play-state: var(--avatar-play, running);
+  animation-delay: var(--avatar-seek, 0s);
 }
 
 @keyframes avatar-sleepy-pupils {
@@ -636,8 +677,8 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-sleepy-mouthd {
-  0% { d: path("M -22 0 Q 0 2.8 22 0"); }
-  100% { d: path("M -22 0 Q 0 2.8 22 0"); }
+  0% { d: path("M -22 0 Q 0 0 22 0"); }
+  100% { d: path("M -22 0 Q 0 0 22 0"); }
 }
 
 .avatar.avatar-expr--sleepy .avatar-mouth {
@@ -654,18 +695,36 @@ function onAnimationEnd(event) {
   animation: none;
 }
 
-@keyframes avatar-wink-eyeR {
-  0% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); }
-  12% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + 0.08 * var(--avatar-intensity, 1))); animation-timing-function: cubic-bezier(0.55, 0, 0.7, 0.3); }
-  20% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.92 * var(--avatar-intensity, 1))); }
-  58% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.92 * var(--avatar-intensity, 1))); animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
-  70% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + 0.08 * var(--avatar-intensity, 1))); }
-  82% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); }
-  100% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); }
+@keyframes avatar-wink-eyeROpen {
+  0% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); opacity: 1; }
+  12% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + 0.08 * var(--avatar-intensity, 1))); opacity: 1; animation-timing-function: cubic-bezier(0.55, 0, 0.7, 0.3); }
+  19% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.85 * var(--avatar-intensity, 1))); opacity: 1; }
+  21% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.88 * var(--avatar-intensity, 1))); opacity: 0; }
+  60% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.88 * var(--avatar-intensity, 1))); opacity: 0; }
+  62% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + -0.84 * var(--avatar-intensity, 1))); opacity: 1; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  72% { transform: translate(0px, 0px) rotate(0deg) scale(1, calc(1 + 0.08 * var(--avatar-intensity, 1))); opacity: 1; }
+  84% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); opacity: 1; }
+  100% { transform: translate(0px, 0px) rotate(0deg) scale(1, 1); opacity: 1; }
 }
 
-.avatar.avatar-expr--wink .avatar-eye--right .avatar-eye-anim {
-  animation: avatar-wink-eyeR 1.3s cubic-bezier(0.45, 0, 0.55, 1) 1 both;
+.avatar.avatar-expr--wink .avatar-eye--right .avatar-eye-open {
+  animation: avatar-wink-eyeROpen 1.3s cubic-bezier(0.45, 0, 0.55, 1) 1 both;
+  animation-play-state: var(--avatar-play, running);
+  animation-delay: var(--avatar-seek, 0s);
+  transform-origin: 50% 55%;
+}
+
+@keyframes avatar-wink-eyeRClosed {
+  0% { transform: translate(0px, 0px) rotate(0deg) scale(calc(1 + -0.05 * var(--avatar-intensity, 1)), 1); opacity: 0; }
+  19% { transform: translate(0px, 0px) rotate(0deg) scale(calc(1 + -0.05 * var(--avatar-intensity, 1)), 1); opacity: 0; animation-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1); }
+  21% { transform: translate(0px, 0px) rotate(0deg) scale(calc(1 + 0.08 * var(--avatar-intensity, 1)), 1); opacity: 1; }
+  60% { transform: translate(0px, 0px) rotate(0deg) scale(calc(1 + 0.08 * var(--avatar-intensity, 1)), 1); opacity: 1; }
+  62% { transform: translate(0px, 0px) rotate(0deg) scale(calc(1 + -0.05 * var(--avatar-intensity, 1)), 1); opacity: 0; }
+  100% { transform: translate(0px, 0px) rotate(0deg) scale(calc(1 + -0.05 * var(--avatar-intensity, 1)), 1); opacity: 0; }
+}
+
+.avatar.avatar-expr--wink .avatar-eye--right .avatar-eye-closed {
+  animation: avatar-wink-eyeRClosed 1.3s cubic-bezier(0.45, 0, 0.55, 1) 1 both;
   animation-play-state: var(--avatar-play, running);
   animation-delay: var(--avatar-seek, 0s);
 }

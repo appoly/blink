@@ -46,10 +46,17 @@ export function mouthCurvePath(mouth: Mouth, morph: MouthMorph = {}): string {
   return `M ${f(-w / 2)} 0 Q 0 ${f(cy)} ${f(w / 2)} 0`
 }
 
-export function openMouthPath(mouth: Mouth): string {
+/**
+ * Open mouth (D-grin) with morphable curvature: the bulge shrinks toward a
+ * sliver at 0 and inverts into an upturned wail when negative. One quadratic
+ * structure at every curvature so CSS can interpolate `d` between them.
+ */
+export function openMouthPath(mouth: Mouth, morph: MouthMorph = {}): string {
   const w = mouth.width
   const h = mouth.height
-  return `M ${f(-w / 2)} 0 L ${f(w / 2)} 0 Q ${f(w / 2)} ${f(h * 1.6)} 0 ${f(h * 1.6)} Q ${f(-w / 2)} ${f(h * 1.6)} ${f(-w / 2)} 0 Z`
+  const c = morph.curvature ?? 1
+  const b = Math.sign(c || 1) * Math.max(0.15, Math.abs(c) * 1.6) * h
+  return `M ${f(-w / 2)} 0 Q 0 0 ${f(w / 2)} 0 Q ${f(w * 0.48)} ${f(b)} 0 ${f(b)} Q ${f(-w * 0.48)} ${f(b)} ${f(-w / 2)} 0 Z`
 }
 
 export function oMouthPath(mouth: Mouth): string {
@@ -58,10 +65,38 @@ export function oMouthPath(mouth: Mouth): string {
   return `M ${f(-rx)} 0 a ${f(rx)} ${f(ry)} 0 1 0 ${f(2 * rx)} 0 a ${f(rx)} ${f(ry)} 0 1 0 ${f(-2 * rx)} 0 Z`
 }
 
-export function catMouthPath(mouth: Mouth): string {
+/** Cat "w" mouth: the humps flatten at 0 curvature and flip up when negative. */
+export function catMouthPath(mouth: Mouth, morph: MouthMorph = {}): string {
   const w = mouth.width
-  const h = mouth.height
-  return `M ${f(-w / 2)} 0 Q ${f(-w / 4)} ${f(h)} 0 0 Q ${f(w / 4)} ${f(h)} ${f(w / 2)} 0`
+  const hump = mouth.height * (morph.curvature ?? 1)
+  return `M ${f(-w / 2)} 0 Q ${f(-w / 4)} ${f(hump)} 0 0 Q ${f(w / 4)} ${f(hump)} ${f(w / 2)} 0`
+}
+
+/**
+ * Morph-target path for an expression's mouth keyframe, or null when the
+ * style has no morphable geometry ('o' stays a neutral gasp by design).
+ */
+export function mouthMorphPath(mouth: Mouth, curvature: number): string | null {
+  switch (mouth.style) {
+    case 'smile':
+    case 'flat':
+    case 'tongue':
+      return mouthCurvePath(mouth, { curvature })
+    case 'open':
+      return openMouthPath(mouth, { curvature })
+    case 'cat':
+      return catMouthPath(mouth, { curvature })
+    case 'o':
+      return null
+  }
+}
+
+/** The curvature an expression morph blends away from at low intensity. */
+export function mouthBaseCurvature(mouth: Mouth): number {
+  if (mouth.style === 'flat') return 0
+  // Open/cat resting shapes are their full grin.
+  if (mouth.style === 'open' || mouth.style === 'cat') return 1
+  return mouth.curvature
 }
 
 export function tonguePath(mouth: Mouth): string {

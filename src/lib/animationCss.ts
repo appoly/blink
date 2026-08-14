@@ -1,6 +1,6 @@
 import type { AvatarProject, ExpressionSettings } from '../types/avatar'
 import { EXPRESSIONS, TARGET_SELECTORS, type ExpressionDef, type Track, type TransformKeyframe } from './expressions'
-import { mouthCurvePath } from './face'
+import { mouthBaseCurvature, mouthMorphPath } from './face'
 import { darken, mixHex } from './shapes'
 
 /**
@@ -11,8 +11,6 @@ import { darken, mixHex } from './shapes'
  * Every animated rule reads `--avatar-play` / `--avatar-seek`, which is how
  * the exported `paused` prop and the editor's scrubber/thumbnails work.
  */
-
-const MORPHABLE_MOUTHS = new Set(['smile', 'flat', 'tongue'])
 
 // The `animation:` shorthand resets delay/play-state, so these live after it
 // in every rule that starts an animation. They power `paused` and scrubbing.
@@ -199,15 +197,15 @@ export function expressionCss(
     }
   }
 
-  if (def.morph && MORPHABLE_MOUTHS.has(project.mouth.style)) {
-    const base = project.mouth.style === 'flat' ? 0 : project.mouth.curvature
+  if (def.morph && mouthMorphPath(project.mouth, 0) !== null) {
+    const base = mouthBaseCurvature(project.mouth)
     const animName = `${ns}-${def.name}-mouthd`
     // Path data can't use calc(), so intensity is baked into the morph frames.
     const frames = def.morph
       .map((kf) => {
         const curvature = Math.max(-1, Math.min(1, base + (kf.curvature - base) * settings.intensity))
         const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
-        return `  ${f(kf.o)}% { d: path("${mouthCurvePath(project.mouth, { curvature })}");${ease} }`
+        return `  ${f(kf.o)}% { d: path("${mouthMorphPath(project.mouth, curvature)}");${ease} }`
       })
       .join('\n')
     lines.push(`@keyframes ${animName} {\n${frames}\n}`)

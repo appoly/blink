@@ -298,10 +298,10 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
       },
     ],
     morph: [
-      { o: 0, curvature: 0.3, ease: SMOOTH },
-      { o: 36, curvature: 0.05 },
-      { o: 70, curvature: 0.05 },
-      { o: 100, curvature: 0.3 },
+      { o: 0, curvature: 0.15, ease: SMOOTH },
+      { o: 36, curvature: 0 },
+      { o: 70, curvature: 0 },
+      { o: 100, curvature: 0.15 },
     ],
   },
 
@@ -363,27 +363,30 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
+        // Brows slam down and knit toward the nose with the stomp.
         target: 'browL',
         ease: SMOOTH,
+        unit: '%',
         keyframes: [
-          { o: 0, opacity: 0, r: 0 },
-          { o: 8, opacity: 0, r: 0, ease: SPRING },
-          { o: 14, opacity: 1, r: 16 },
-          { o: 70, opacity: 1, r: 16 },
-          { o: 88, opacity: 0, r: 0 },
-          { o: 100, opacity: 0, r: 0 },
+          { o: 0, opacity: 0, r: 0, ty: -0.8 },
+          { o: 8, opacity: 0, r: 0, ty: -0.8, ease: SPRING },
+          { o: 14, opacity: 1, r: 18, ty: 1.4, tx: 0.3 },
+          { o: 70, opacity: 1, r: 18, ty: 1.4, tx: 0.3 },
+          { o: 88, opacity: 0, r: 0, ty: -0.8, tx: 0 },
+          { o: 100, opacity: 0, r: 0, ty: -0.8, tx: 0 },
         ],
       },
       {
         target: 'browR',
         ease: SMOOTH,
+        unit: '%',
         keyframes: [
-          { o: 0, opacity: 0, r: 0 },
-          { o: 8, opacity: 0, r: 0, ease: SPRING },
-          { o: 14, opacity: 1, r: -16 },
-          { o: 70, opacity: 1, r: -16 },
-          { o: 88, opacity: 0, r: 0 },
-          { o: 100, opacity: 0, r: 0 },
+          { o: 0, opacity: 0, r: 0, ty: -0.8 },
+          { o: 8, opacity: 0, r: 0, ty: -0.8, ease: SPRING },
+          { o: 14, opacity: 1, r: -18, ty: 1.4, tx: -0.3 },
+          { o: 70, opacity: 1, r: -18, ty: 1.4, tx: -0.3 },
+          { o: 88, opacity: 0, r: 0, ty: -0.8, tx: 0 },
+          { o: 100, opacity: 0, r: 0, ty: -0.8, tx: 0 },
         ],
       },
       {
@@ -498,25 +501,31 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
+        // Brows stay solid and see-saw against each other — one up, one
+        // down — instead of flickering in and out.
         target: 'browL',
         ease: SMOOTH,
+        unit: '%',
         keyframes: [
-          { o: 0, opacity: 0, r: 0 },
-          { o: 18, opacity: 0.8, r: -8 },
-          { o: 48, opacity: 0.25, r: 5 },
-          { o: 68, opacity: 0.75, r: -6 },
-          { o: 100, opacity: 0, r: 0 },
+          { o: 0, opacity: 0, r: 0, ty: 0 },
+          { o: 12, opacity: 1, r: -9, ty: -1 },
+          { o: 40, opacity: 1, r: 6, ty: 0.6 },
+          { o: 66, opacity: 1, r: -7, ty: -0.8 },
+          { o: 90, opacity: 0, r: 0, ty: 0 },
+          { o: 100, opacity: 0, r: 0, ty: 0 },
         ],
       },
       {
         target: 'browR',
         ease: SMOOTH,
+        unit: '%',
         keyframes: [
-          { o: 0, opacity: 0, r: 0 },
-          { o: 18, opacity: 0.35, r: 7 },
-          { o: 48, opacity: 0.8, r: -5 },
-          { o: 68, opacity: 0.3, r: 8 },
-          { o: 100, opacity: 0, r: 0 },
+          { o: 0, opacity: 0, r: 0, ty: 0 },
+          { o: 12, opacity: 1, r: 8, ty: 0.6 },
+          { o: 40, opacity: 1, r: -6, ty: -1 },
+          { o: 66, opacity: 1, r: 7, ty: 0.5 },
+          { o: 90, opacity: 0, r: 0, ty: 0 },
+          { o: 100, opacity: 0, r: 0, ty: 0 },
         ],
       },
       {
@@ -545,9 +554,9 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
     ],
     morph: [
       { o: 0, curvature: -0.15, ease: SMOOTH },
-      { o: 30, curvature: 0.2 },
+      { o: 30, curvature: 0.1 },
       { o: 55, curvature: -0.25 },
-      { o: 78, curvature: 0.1 },
+      { o: 78, curvature: 0.05 },
       { o: 100, curvature: -0.15 },
     ],
   },
@@ -591,21 +600,25 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
+        // Worried brows: inner ends lifted, drooping a little deeper with
+        // the breath. Solid — translucent strokes read as smudges.
         target: 'browL',
         ease: SMOOTH,
+        unit: '%',
         keyframes: [
-          { o: 0, opacity: 0.65, r: -10, ty: 1 },
-          { o: 50, opacity: 0.8, r: -12, ty: 1.5 },
-          { o: 100, opacity: 0.65, r: -10, ty: 1 },
+          { o: 0, opacity: 1, r: -12, ty: 0.5 },
+          { o: 50, opacity: 1, r: -14, ty: 0.8 },
+          { o: 100, opacity: 1, r: -12, ty: 0.5 },
         ],
       },
       {
         target: 'browR',
         ease: SMOOTH,
+        unit: '%',
         keyframes: [
-          { o: 0, opacity: 0.65, r: 10, ty: 1 },
-          { o: 50, opacity: 0.8, r: 12, ty: 1.5 },
-          { o: 100, opacity: 0.65, r: 10, ty: 1 },
+          { o: 0, opacity: 1, r: 12, ty: 0.5 },
+          { o: 50, opacity: 1, r: 14, ty: 0.8 },
+          { o: 100, opacity: 1, r: 12, ty: 0.5 },
         ],
       },
       {
@@ -793,37 +806,49 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
+        // The lid physically closes: the eye collapses toward the point where
+        // the closed-stroke sits (~55% down its box), staying fully opaque
+        // until it is a sliver, then swaps to the stroke in a 2% window — the
+        // silhouettes match at the swap so no fade is visible.
         target: 'eyeOpen',
-        origin: '50% 0%',
+        origin: '50% 55%',
         ease: SMOOTH,
         keyframes: [
           { o: 0, sy: 0.66, opacity: 1 },
-          { o: 14, sy: 0.58, opacity: 1 },
-          { o: 20, sy: 0.28, opacity: 0.2 },
-          { o: 23, sy: 0.2, opacity: 0 },
-          { o: 29, sy: 0.56, opacity: 1 },
+          { o: 14, sy: 0.58, opacity: 1, ease: FALL },
+          { o: 20, sy: 0.14, opacity: 1 },
+          { o: 22, sy: 0.12, opacity: 0 },
+          { o: 28, sy: 0.12, opacity: 0 },
+          { o: 30, sy: 0.16, opacity: 1 },
+          { o: 40, sy: 0.6, opacity: 1 },
           { o: 48, sy: 0.7, opacity: 1 },
-          { o: 62, sy: 0.56, opacity: 1 },
-          { o: 68, sy: 0.26, opacity: 0.15 },
-          { o: 71, sy: 0.2, opacity: 0 },
-          { o: 79, sy: 0.58, opacity: 1 },
+          { o: 62, sy: 0.58, opacity: 1, ease: FALL },
+          { o: 68, sy: 0.14, opacity: 1 },
+          { o: 70, sy: 0.12, opacity: 0 },
+          { o: 76, sy: 0.12, opacity: 0 },
+          { o: 78, sy: 0.16, opacity: 1 },
+          { o: 88, sy: 0.6, opacity: 1 },
           { o: 100, sy: 0.66, opacity: 1 },
         ],
       },
       {
+        // The stroke takes over in the same 2% windows, sinking and deepening
+        // slightly while held so the closed eye still feels alive.
         target: 'eyeClosed',
         ease: SMOOTH,
         keyframes: [
-          { o: 0, opacity: 0 },
-          { o: 18, opacity: 0 },
-          { o: 22, opacity: 1 },
-          { o: 25, opacity: 1 },
-          { o: 30, opacity: 0 },
-          { o: 66, opacity: 0 },
-          { o: 70, opacity: 1 },
-          { o: 73, opacity: 1 },
-          { o: 80, opacity: 0 },
-          { o: 100, opacity: 0 },
+          { o: 0, opacity: 0, sy: 0.8, ty: 0 },
+          { o: 20, opacity: 0, sy: 0.8, ty: 0 },
+          { o: 22, opacity: 1, sy: 0.9, ty: 0 },
+          { o: 27, opacity: 1, sy: 1.05, ty: 0.6 },
+          { o: 28, opacity: 1, sy: 1.05, ty: 0.6 },
+          { o: 30, opacity: 0, sy: 0.8, ty: 0 },
+          { o: 68, opacity: 0, sy: 0.8, ty: 0 },
+          { o: 70, opacity: 1, sy: 0.9, ty: 0 },
+          { o: 75, opacity: 1, sy: 1.05, ty: 0.6 },
+          { o: 76, opacity: 1, sy: 1.05, ty: 0.6 },
+          { o: 78, opacity: 0, sy: 0.8, ty: 0 },
+          { o: 100, opacity: 0, sy: 0.8, ty: 0 },
         ],
       },
       {
@@ -845,8 +870,8 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
       },
     ],
     morph: [
-      { o: 0, curvature: 0.1 },
-      { o: 100, curvature: 0.1 },
+      { o: 0, curvature: 0 },
+      { o: 100, curvature: 0 },
     ],
     // Zzz drift up and away from the head, one after another.
     props: [
@@ -928,27 +953,34 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
+        // Collapses up toward the smile-arc's line (its centroid sits just
+        // above eye centre) fully opaque, then swaps where silhouettes match.
         target: 'eyeOpen',
+        origin: '50% 47%',
         ease: SMOOTH,
         keyframes: [
           { o: 0, opacity: 1, sy: 1 },
-          { o: 10, opacity: 0.15, sy: 0.72 },
-          { o: 14, opacity: 0, sy: 0.65 },
-          { o: 58, opacity: 0, sy: 0.65 },
-          { o: 76, opacity: 1, sy: 1 },
+          { o: 12, opacity: 1, sy: 0.15 },
+          { o: 14, opacity: 0, sy: 0.12 },
+          { o: 70, opacity: 0, sy: 0.12 },
+          { o: 72, opacity: 1, sy: 0.16 },
+          { o: 86, opacity: 1, sy: 1 },
           { o: 100, opacity: 1, sy: 1 },
         ],
       },
       {
+        // The arc springs open from the swap point — a little bloom.
         target: 'eyeSmile',
         ease: SMOOTH,
         keyframes: [
-          { o: 0, opacity: 0, sx: 0.9, sy: 0.9 },
-          { o: 10, opacity: 0.85, sx: 1.06, sy: 1.06, ease: SPRING },
-          { o: 14, opacity: 1, sx: 1, sy: 1 },
-          { o: 58, opacity: 1, sx: 1, sy: 1 },
-          { o: 76, opacity: 0, sx: 0.92, sy: 0.92 },
-          { o: 100, opacity: 0, sx: 0.92, sy: 0.92 },
+          { o: 0, opacity: 0, sx: 0.95, sy: 0.6 },
+          { o: 12, opacity: 0, sx: 0.95, sy: 0.6, ease: SPRING },
+          { o: 14, opacity: 1, sx: 1, sy: 0.7 },
+          { o: 22, opacity: 1, sx: 1.06, sy: 1.08 },
+          { o: 30, opacity: 1, sx: 1, sy: 1 },
+          { o: 70, opacity: 1, sx: 1, sy: 1 },
+          { o: 72, opacity: 0, sx: 0.95, sy: 0.6 },
+          { o: 100, opacity: 0, sx: 0.95, sy: 0.6 },
         ],
       },
       {
@@ -1115,16 +1147,20 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
     ownsEyes: true,
     tracks: [
       {
+        // Collapses toward the closed-stroke line fully opaque, then swaps in
+        // a 2% window where the silhouettes match (no visible fade).
         target: 'eyeROpen',
+        origin: '50% 55%',
         ease: SMOOTH,
         keyframes: [
           { o: 0, sy: 1, opacity: 1 },
           { o: 12, sy: 1.08, opacity: 1, ease: SNAP_IN },
-          { o: 18, sy: 0.3, opacity: 0.2 },
-          { o: 21, sy: 0.2, opacity: 0 },
-          { o: 58, sy: 0.2, opacity: 0, ease: SPRING },
-          { o: 68, sy: 1.08, opacity: 1 },
-          { o: 82, sy: 1, opacity: 1 },
+          { o: 19, sy: 0.15, opacity: 1 },
+          { o: 21, sy: 0.12, opacity: 0 },
+          { o: 60, sy: 0.12, opacity: 0 },
+          { o: 62, sy: 0.16, opacity: 1, ease: SPRING },
+          { o: 72, sy: 1.08, opacity: 1 },
+          { o: 84, sy: 1, opacity: 1 },
           { o: 100, sy: 1, opacity: 1 },
         ],
       },
@@ -1132,12 +1168,12 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         target: 'eyeRClosed',
         ease: SMOOTH,
         keyframes: [
-          { o: 0, opacity: 0, sx: 0.9 },
-          { o: 17, opacity: 0, sx: 0.9, ease: SPRING },
+          { o: 0, opacity: 0, sx: 0.95 },
+          { o: 19, opacity: 0, sx: 0.95, ease: SPRING },
           { o: 21, opacity: 1, sx: 1.08 },
-          { o: 58, opacity: 1, sx: 1.08 },
-          { o: 68, opacity: 0, sx: 0.92 },
-          { o: 100, opacity: 0, sx: 0.92 },
+          { o: 60, opacity: 1, sx: 1.08 },
+          { o: 62, opacity: 0, sx: 0.95 },
+          { o: 100, opacity: 0, sx: 0.95 },
         ],
       },
       {
@@ -1251,7 +1287,7 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
     // Wobbles between queasy frown and grimace.
     morph: [
       { o: 0, curvature: -0.3, ease: SMOOTH },
-      { o: 35, curvature: 0.15 },
+      { o: 35, curvature: 0.1 },
       { o: 65, curvature: -0.25 },
       { o: 100, curvature: -0.3 },
     ],

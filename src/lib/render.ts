@@ -87,7 +87,10 @@ function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string
   // sleepy and wink; the raised arc is used by love and laughing.
   const closedEyePath = `M ${-eyeRx * 0.86} 0 Q 0 ${eyes.size * 0.18} ${eyeRx * 0.86} 0`
   const smileEyePath = `M ${-eyeRx * 0.86} ${eyes.size * 0.12} Q 0 ${-eyes.size * 0.42} ${eyeRx * 0.86} ${eyes.size * 0.12}`
-  const browPath = `M ${-eyeRx * 0.72} ${-eyes.size * 0.9} Q 0 ${-eyes.size * 1.02} ${eyeRx * 0.72} ${-eyes.size * 0.9}`
+  // Brow: a bold arched stroke floating clearly above the eye — wide and
+  // thick enough to read at a distance, with room to knit down or lift.
+  const browPath = `M ${-eyeRx * 0.95} ${-eyes.size * 1.35} Q 0 ${-eyes.size * 1.62} ${eyeRx * 0.95} ${-eyes.size * 1.35}`
+  const browStroke = Math.max(3, eyes.size * 0.24)
   const pupilChildren: SvgNode[] = [el('circle', { r: pupilR, fill: eyes.pupilColor })]
   if (eyes.highlight) {
     pupilChildren.push(
@@ -118,7 +121,7 @@ function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string
         ]),
         el('path', { class: 'avatar-eye-closed', d: closedEyePath, ...lidAttrs }),
         el('path', { class: 'avatar-eye-smile', d: smileEyePath, ...lidAttrs }),
-        el('path', { class: 'avatar-eyebrow', d: browPath, ...lidAttrs }),
+        el('path', { class: 'avatar-eyebrow', d: browPath, ...lidAttrs, 'stroke-width': browStroke }),
       ]),
     ],
   )

@@ -28,36 +28,46 @@
       <g class="avatar-face">
         <g class="avatar-eye avatar-eye--left" transform="translate(-38 -18)">
           <g class="avatar-eye-anim">
-            <g class="avatar-eye-blink">
-              <g transform="scale(1 1)">
-                <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
-                <g clip-path="url(#snap-eye-clip)">
-                  <g class="avatar-pupil-anim">
-                    <g class="avatar-pupil">
-                      <circle r="8" fill="#2b2b2b" />
-                      <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+            <g class="avatar-eye-open">
+              <g class="avatar-eye-blink">
+                <g transform="scale(1 1)">
+                  <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
+                  <g clip-path="url(#snap-eye-clip)">
+                    <g class="avatar-pupil-anim">
+                      <g class="avatar-pupil">
+                        <circle r="8" fill="#2b2b2b" />
+                        <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+                      </g>
                     </g>
                   </g>
                 </g>
               </g>
             </g>
+            <path class="avatar-eye-closed" d="M -13.76 0 Q 0 2.88 13.76 0" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+            <path class="avatar-eye-smile" d="M -13.76 1.92 Q 0 -6.72 13.76 1.92" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+            <path class="avatar-eyebrow" d="M -15.2 -21.6 Q 0 -25.92 15.2 -21.6" fill="none" stroke="#2b2b2b" stroke-width="3.84" stroke-linecap="round" opacity="0" />
           </g>
         </g>
         <g class="avatar-eye avatar-eye--right" transform="translate(38 -18)">
           <g class="avatar-eye-anim">
-            <g class="avatar-eye-blink">
-              <g transform="scale(1 1)">
-                <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
-                <g clip-path="url(#snap-eye-clip)">
-                  <g class="avatar-pupil-anim">
-                    <g class="avatar-pupil">
-                      <circle r="8" fill="#2b2b2b" />
-                      <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+            <g class="avatar-eye-open">
+              <g class="avatar-eye-blink">
+                <g transform="scale(1 1)">
+                  <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
+                  <g clip-path="url(#snap-eye-clip)">
+                    <g class="avatar-pupil-anim">
+                      <g class="avatar-pupil">
+                        <circle r="8" fill="#2b2b2b" />
+                        <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
+                      </g>
                     </g>
                   </g>
                 </g>
               </g>
             </g>
+            <path class="avatar-eye-closed" d="M -13.76 0 Q 0 2.88 13.76 0" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+            <path class="avatar-eye-smile" d="M -13.76 1.92 Q 0 -6.72 13.76 1.92" fill="none" stroke="#2b2b2b" stroke-width="2.4" stroke-linecap="round" opacity="0" />
+            <path class="avatar-eyebrow" d="M -15.2 -21.6 Q 0 -25.92 15.2 -21.6" fill="none" stroke="#2b2b2b" stroke-width="3.84" stroke-linecap="round" opacity="0" />
           </g>
         </g>
         <g class="avatar-mouth-wrap" transform="translate(0 28)">
