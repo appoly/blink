@@ -62,7 +62,6 @@ function setCorner(part: Part, index: number, e: Event) {
 function setKind(part: Part, e: Event) {
   const kind = (e.target as HTMLSelectElement).value as PartKind
   part.kind = kind
-  if (kind === 'lobe' && (part.pinch ?? 0) === 0) part.pinch = 0.55
   if (kind === 'arc' && part.bend == null) part.bend = 0.6
   if (kind === 'rect' && part.cornerRadius === 0) part.cornerRadius = 6
   commit()
@@ -83,7 +82,6 @@ const PART_KINDS = [
   ['circle', 'Circle'],
   ['ellipse', 'Ellipse'],
   ['capsule', 'Capsule'],
-  ['lobe', 'Lobe'],
   ['arc', 'Arc / curve'],
   ['trapezoid', 'Trapezoid'],
   ['blob', 'Blob'],
@@ -419,10 +417,10 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
         <button @click="duplicatePart(selectedPart!)">Duplicate (⌘D)</button>
         <button class="danger" @click="deletePart(selectedPart!)">Delete</button>
       </div>
-      <p class="hint">Drag to move · handles resize (⇧ keeps ratio, ⌥ from centre) · arrows nudge (⇧ = 10px) · ⌘C/⌘V copy &amp; paste. Lobe pinch cinches the base — rotate to point ears, horns or tails, and put them behind the body so the join tucks in.</p>
+      <p class="hint">Drag to move · handles resize (⇧ keeps ratio, ⌥ from centre) · arrows nudge (⇧ = 10px) · ⌘C/⌘V copy &amp; paste. Put ears, horns and tails behind the body so the join tucks in.</p>
     </template>
 
-    <p v-else class="hint">Select the body, eyes, mouth or a shape to edit its properties. Drag shapes in from the palette above the canvas.</p>
+    <p v-else class="hint">Select the body, eyes, mouth or a shape to edit its properties. Drag shapes in from the palette below the canvas.</p>
   </div>
 </template>
 

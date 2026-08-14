@@ -10,7 +10,6 @@ export const PALETTE_SHAPES: PaletteShape[] = [
   { kind: 'circle', label: 'Circle' },
   { kind: 'ellipse', label: 'Ellipse' },
   { kind: 'capsule', label: 'Capsule' },
-  { kind: 'lobe', label: 'Lobe' },
   { kind: 'arc', label: 'Arc / curve' },
   { kind: 'trapezoid', label: 'Trapezoid' },
   { kind: 'blob', label: 'Blob' },
@@ -22,7 +21,6 @@ export const PALETTE_SHAPES: PaletteShape[] = [
 
 export function createPart(kind: PartKind, x: number, y: number): Part {
   const isStrip = kind === 'strip'
-  const isLobe = kind === 'lobe'
   const isArc = kind === 'arc'
   return {
     id: newId(),
@@ -30,12 +28,12 @@ export function createPart(kind: PartKind, x: number, y: number): Part {
     kind,
     x,
     y,
-    width: isStrip ? 120 : isLobe ? 28 : isArc ? 90 : 40,
-    height: isStrip ? 14 : isLobe ? 52 : isArc ? 16 : 40,
+    width: isStrip ? 120 : isArc ? 90 : 40,
+    height: isStrip ? 14 : isArc ? 16 : 40,
     rotation: 0,
     cornerRadius: kind === 'rect' ? 6 : kind === 'strip' ? 4 : 0,
     corners: null,
-    pinch: isLobe ? 0.55 : 0,
+    pinch: 0,
     blobVariant: 0,
     bend: 0.6,
     clipToBody: false,
@@ -45,7 +43,7 @@ export function createPart(kind: PartKind, x: number, y: number): Part {
     hidden: false,
     locked: false,
     mirror: false,
-    behindBody: isLobe,
+    behindBody: false,
     aboveFace: false,
   }
 }

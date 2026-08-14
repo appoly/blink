@@ -145,7 +145,7 @@ export function defaultExpressionSettings(): Record<string, ExpressionSettings> 
       speed: 1,
       intensity: 1,
       loop: name === 'wink' ? 'once' : 'infinite',
-      include: name === 'idle' || name === 'happy',
+      include: ['idle', 'happy', 'curious', 'angry', 'confused', 'sad', 'wink'].includes(name),
     }
   }
   out.idle.include = true
@@ -157,13 +157,12 @@ export function defaultProject(): AvatarProject {
   const navy = '#12224a'
   const magenta = '#e4286e'
   const expressions = defaultExpressionSettings()
-  expressions.wink.include = true
   return {
     version: 1,
     name: 'MyAvatar',
     // Default character (and app mascot): "Pip" — a pale squishy blob with
-    // lobe ears (blue-grey left, magenta right) and navy/magenta stripes that
-    // sweep round the right hip, clipped to the body silhouette.
+    // rounded ears (blue-grey left, magenta right) and navy/magenta stripes
+    // that sweep round the right hip, clipped to the body silhouette.
     body: {
       kind: 'blob',
       width: 188,
@@ -177,7 +176,7 @@ export function defaultProject(): AvatarProject {
       {
         id: 'ear-left',
         name: 'Ear left',
-        kind: 'lobe',
+        kind: 'ellipse',
         x: -40,
         y: -94,
         width: 34,
@@ -185,7 +184,7 @@ export function defaultProject(): AvatarProject {
         rotation: -20,
         cornerRadius: 0,
         corners: null,
-        pinch: 0.3,
+        pinch: 0,
         blobVariant: 0,
         fill: { type: 'solid', color: '#c3cede' },
         stroke: null,
@@ -199,7 +198,7 @@ export function defaultProject(): AvatarProject {
       {
         id: 'ear-right',
         name: 'Ear right',
-        kind: 'lobe',
+        kind: 'ellipse',
         x: 44,
         y: -92,
         width: 34,
@@ -207,7 +206,7 @@ export function defaultProject(): AvatarProject {
         rotation: 22,
         cornerRadius: 0,
         corners: null,
-        pinch: 0.3,
+        pinch: 0,
         blobVariant: 0,
         fill: { type: 'solid', color: magenta },
         stroke: null,
@@ -222,9 +221,9 @@ export function defaultProject(): AvatarProject {
         id: 'stripe-navy',
         name: 'Stripe navy',
         kind: 'arc',
-        x: 50,
-        y: 52,
-        width: 160,
+        x: 50.5,
+        y: 35.3,
+        width: 166.3,
         height: 34,
         rotation: -50,
         cornerRadius: 0,
@@ -246,11 +245,11 @@ export function defaultProject(): AvatarProject {
         id: 'stripe-pink',
         name: 'Stripe pink',
         kind: 'arc',
-        x: 68,
-        y: 70,
+        x: 65.2,
+        y: 52.3,
         width: 150,
         height: 28,
-        rotation: -49,
+        rotation: -46.5,
         cornerRadius: 0,
         corners: null,
         pinch: 0,
@@ -269,8 +268,8 @@ export function defaultProject(): AvatarProject {
     ],
     eyes: {
       style: 'round',
-      spacing: 30,
-      offsetY: -32,
+      spacing: 30.7,
+      offsetY: -28,
       size: 23,
       squash: 1.05,
       pupilSize: 0.58,
