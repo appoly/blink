@@ -281,7 +281,10 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
   defs.push(el('clipPath', { id: clipId }, [el('path', { d: eyePath(project.eyes) })]))
   defs.push(
     el('clipPath', { id: bodyClipId }, [
+      // Same class as the rendered body path so jelly `d` morphs animate the
+      // clip in lockstep — clipped parts follow the sloshing outline exactly.
       el('path', {
+        class: 'avatar-body-shape',
         d: shapePath(project.body.kind, project.body.width, project.body.height, project.body.cornerRadius, project.body.blobVariant),
       }),
     ]),

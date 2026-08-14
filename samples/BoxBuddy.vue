@@ -58,7 +58,7 @@ function onAnimationEnd(event) {
         <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" />
       </clipPath>
       <clipPath id="avatar-body-clip">
-        <path d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" />
+        <path class="avatar-body-shape" d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" />
       </clipPath>
     </defs>
     <g class="avatar-root">
