@@ -36,7 +36,7 @@ function addShape(kind: PartKind) {
     >
       <svg viewBox="-14 -14 28 28">
         <path
-          :d="shapePath(shape.kind, shape.kind === 'strip' || shape.kind === 'arc' ? 24 : 20, shape.kind === 'strip' ? 8 : shape.kind === 'arc' ? 7 : 20, 4, shape.kind === 'blob' ? 1 : 0, null, 0, 0.6)"
+          :d="shapePath(shape.kind, shape.kind === 'strip' || shape.kind === 'arc' ? 24 : 20, shape.kind === 'strip' ? 8 : shape.kind === 'arc' ? 7 : 20, { cornerRadius: 4, blobVariant: shape.kind === 'blob' ? 1 : 0, pinch: shape.kind === 'teardrop' ? 0.3 : 0, bend: shape.kind === 'crescent' ? 0.5 : 0.6 })"
           fill="currentColor"
         />
       </svg>

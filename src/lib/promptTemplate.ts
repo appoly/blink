@@ -43,19 +43,23 @@ The notation below documents the allowed values. Your response must be ordinary 
   "version": 1,
   "name": "PascalCaseName",
   "body": {
-    "kind": "rect" | "circle" | "ellipse" | "capsule" | "trapezoid" | "tapered" | "blob",
+    "kind": "rect" | "circle" | "ellipse" | "capsule" | "trapezoid" | "tapered" | "blob" | "polygon" | "burst" | "squircle",
     "width": 120-260,
     "height": 120-260,
     "cornerRadius": 0-60,
     "blobVariant": 0 | 1 | 2,
-    "fill": { "type": "solid" | "gradient", "color": "#rrggbb" },
-    "stroke": null | { "color": "#rrggbb", "width": 1-8 }
+    "sides": 3-12,
+    "spikes": 5-24,
+    "spikeDepth": 0.1-0.9,
+    "exponent": 2.5-8,
+    "fill": { "type": "solid" | "gradient", "color": "#rrggbb", "color2": "#rrggbb" (optional), "gradientType": "linear" | "radial" (optional), "gradientAngle": 0-360 (optional) },
+    "stroke": null | { "color": "#rrggbb", "width": 1-8, "style": "solid" | "dashed" | "sketchy" (optional) }
   },
   "parts": [
     {
       "id": "unique-short-kebab-case-id",
       "name": "Human label",
-      "kind": "rect" | "circle" | "ellipse" | "capsule" | "arc" | "trapezoid" | "blob" | "triangle" | "star" | "heart" | "strip",
+      "kind": "rect" | "circle" | "ellipse" | "capsule" | "arc" | "trapezoid" | "blob" | "triangle" | "star" | "heart" | "strip" | "polygon" | "burst" | "squircle" | "crescent" | "teardrop",
       "x": number,
       "y": number,
       "width": number,
@@ -66,9 +70,13 @@ The notation below documents the allowed values. Your response must be ordinary 
       "pinch": 0-0.9,
       "blobVariant": 0 | 1 | 2,
       "bend": -1.5 to 1.5,
+      "sides": 3-12,
+      "spikes": 5-24,
+      "spikeDepth": 0.1-0.9,
+      "exponent": 2.5-8,
       "clipToBody": true | false,
-      "fill": { "type": "solid" | "gradient", "color": "#rrggbb" },
-      "stroke": null | { "color": "#rrggbb", "width": 1-8 },
+      "fill": { "type": "solid" | "gradient", "color": "#rrggbb", "color2": "#rrggbb" (optional), "gradientType": "linear" | "radial" (optional), "gradientAngle": 0-360 (optional) },
+      "stroke": null | { "color": "#rrggbb", "width": 1-8, "style": "solid" | "dashed" | "sketchy" (optional) },
       "opacity": 0-1,
       "hidden": false,
       "locked": false,
@@ -105,8 +113,9 @@ The notation below documents the allowed values. Your response must be ordinary 
 Allowed expression names: idle, happy, curious, angry, confused, sad, surprised, sleepy, love, laughing, wink, dizzy.
 
 ## Geometry and art-direction rules
-- Body: use rect for boxy objects; circle/ellipse for round subjects; capsule for soft upright forms; trapezoid for shapes narrow at the top and wide at the bottom; tapered for shapes wide at the top and narrow at the bottom; blob for organic or imaginary creatures. Match the subject's real orientation rather than choosing a vaguely similar shape. For rect, set a friendly cornerRadius. For non-rect bodies, use 0. Blob variants are 0 pebble/round, 1 splodge/pear, and 2 puddle/wide.
-- Finish: gradients automatically derive a darker lower stop and add soft dimensionality. They work especially well on organic bodies. Use outlines only when they are part of a deliberate graphic style; otherwise prefer no stroke.
+- Body: use rect for boxy objects; circle/ellipse for round subjects; capsule for soft upright forms; trapezoid for shapes narrow at the top and wide at the bottom; tapered for shapes wide at the top and narrow at the bottom; blob for organic or imaginary creatures; polygon (with "sides", plus cornerRadius to soften vertices) for gems, nuts, and signage; burst (with "spikes" and "spikeDepth") for suns, explosions, and badges; squircle (with "exponent" — higher is boxier) for app-icon or robot bodies. Match the subject's real orientation rather than choosing a vaguely similar shape. For rect and polygon, set a friendly cornerRadius. For other bodies, use 0. Blob variants are 0 pebble/round, 1 splodge/pear, and 2 puddle/wide.
+- Extra part shapes: crescent (bend 0.1-0.9 sets fullness: 0.1 sliver, 0.5 half moon) for moons, bananas, and claws; teardrop (pinch sharpens the point) for drops, flames, and leaves.
+- Finish: by default gradients derive a darker lower stop for soft dimensionality; optionally set "color2" for a custom second stop, "gradientAngle" to tilt a linear ramp (90 is top-to-bottom), or "gradientType": "radial" for glowing or spherical looks. Gradients work especially well on organic bodies. Use outlines only when they are part of a deliberate graphic style; otherwise prefer no stroke. Stroke "style" "dashed" suits stitched or toy looks; "sketchy" gives a wobbly hand-drawn outline.
 - Palette: interpret a palette mood as a coherent colour relationship, not a collection of literal colours. "Dark and moody" should use a deep dominant colour, a nearby secondary shade, and one restrained brighter accent; it must still have strong face contrast. Avoid muddy palettes and unrelated accent hues.
 - Face: keep both eyes and the mouth fully inside the body with generous space around them and away from lids, bands, and other structural parts. Put the face near the upper-middle (eyes are often -15 to -45; mouth is often 10 to 40). Large pupils and highlights feel open and friendly; halfmoon eyes feel calm or sleepy; bean eyes feel playful. Ensure the pupil/face colour contrasts strongly with the body. Mouth details should never become the visual focal point unless the brief explicitly calls for that.
 - Ears/horns/limbs: use ellipse or capsule, rotate the join toward the body, and set behindBody true so the join tucks under the silhouette. On capsule, pinch 0.3-0.7 narrows the join end.
@@ -114,7 +123,7 @@ Allowed expression names: idle, happy, curious, angry, confused, sad, surprised,
 - Arc: a curved ribbon where width is the chord, height is thickness, and bend controls curve depth (0 is straight). Oversize it and set clipToBody true for stripes or markings that end cleanly at the body edge.
 - Mirroring: set mirror true for a symmetric pair such as ears, arms, cheeks, or horns. Place the source part off-centre; do not also add the twin as another record.
 - Layers: behindBody is for ears, tails, limbs, and anything tucked behind the body. aboveFace is only for something intentionally crossing in front of the face. Most markings use both false so the face remains readable.
-- Field completeness: include corners, pinch, blobVariant, bend, and clipToBody on every part even when that shape does not use them; use null, 0, or false as appropriate. Use finite numbers, unique ids, opacity 1, and hidden/locked false unless the brief specifically requires otherwise.
+- Field completeness: include corners, pinch, blobVariant, bend, and clipToBody on every part even when that shape does not use them; use null, 0, or false as appropriate. Include sides, spikes, spikeDepth, or exponent only on the shapes that use them. Use finite numbers, unique ids, opacity 1, and hidden/locked false unless the brief specifically requires otherwise.
 - Expressions: include idle plus 2-4 personality-appropriate moods. Idle must use loop "infinite". Wink usually uses loop "once"; other moods usually use "infinite". Avoid including every expression.
 
 ## General concept translation

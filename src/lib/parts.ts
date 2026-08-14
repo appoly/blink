@@ -17,6 +17,11 @@ export const PALETTE_SHAPES: PaletteShape[] = [
   { kind: 'star', label: 'Star' },
   { kind: 'heart', label: 'Heart' },
   { kind: 'strip', label: 'Strip' },
+  { kind: 'polygon', label: 'Polygon' },
+  { kind: 'burst', label: 'Burst' },
+  { kind: 'squircle', label: 'Squircle' },
+  { kind: 'crescent', label: 'Crescent' },
+  { kind: 'teardrop', label: 'Teardrop' },
 ]
 
 export function createPart(kind: PartKind, x: number, y: number): Part {
@@ -33,9 +38,13 @@ export function createPart(kind: PartKind, x: number, y: number): Part {
     rotation: 0,
     cornerRadius: kind === 'rect' ? 6 : kind === 'strip' ? 4 : 0,
     corners: null,
-    pinch: 0,
+    pinch: kind === 'teardrop' ? 0.3 : 0,
     blobVariant: 0,
-    bend: 0.6,
+    bend: kind === 'crescent' ? 0.5 : 0.6,
+    sides: 6,
+    spikes: 10,
+    spikeDepth: 0.45,
+    exponent: 4,
     clipToBody: false,
     fill: { type: 'solid', color: '#f2d5b3' },
     stroke: null,

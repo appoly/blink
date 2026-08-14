@@ -1,6 +1,16 @@
 // Project schema — this is what gets saved to .avatar files (JSON).
 
-export type BodyKind = 'rect' | 'circle' | 'ellipse' | 'capsule' | 'trapezoid' | 'tapered' | 'blob'
+export type BodyKind =
+  | 'rect'
+  | 'circle'
+  | 'ellipse'
+  | 'capsule'
+  | 'trapezoid'
+  | 'tapered'
+  | 'blob'
+  | 'polygon'
+  | 'burst'
+  | 'squircle'
 export type PartKind =
   | BodyKind
   | 'lobe'
@@ -9,17 +19,25 @@ export type PartKind =
   | 'star'
   | 'heart'
   | 'strip'
+  | 'crescent'
+  | 'teardrop'
 
 export interface Fill {
   type: 'solid' | 'gradient'
   color: string
   /** Auto-derived darker shade for the lower gradient stop unless overridden. */
   color2?: string
+  /** Default 'linear'. */
+  gradientType?: 'linear' | 'radial'
+  /** Linear only. Degrees clockwise from +x; default 90 = top→bottom. */
+  gradientAngle?: number
 }
 
 export interface Stroke {
   color: string
   width: number
+  /** Default 'solid'. */
+  style?: 'solid' | 'dashed' | 'sketchy'
 }
 
 export interface Body {
@@ -29,6 +47,13 @@ export interface Body {
   cornerRadius: number
   /** Blob preset: 0 pebble, 1 splodge (pear), 2 puddle. */
   blobVariant: number
+  /** Polygon only: number of sides, 3–12. Default 6. */
+  sides?: number
+  /** Burst only: spike count 5–24 (default 10) and depth 0.1–0.9 (default 0.45). */
+  spikes?: number
+  spikeDepth?: number
+  /** Squircle only: superellipse exponent 2.5–8. Default 4. */
+  exponent?: number
   fill: Fill
   stroke: Stroke | null
 }
@@ -49,12 +74,20 @@ export interface Part {
   /**
    * 0–1. Cinches the local +Y end of a lobe or capsule into a waist
    * (the join of an ear, horn or tail). 0 = even, 1 = very pinched.
+   * Teardrop: point sharpness (default 0.3).
    */
   pinch?: number
   /** Blob preset 0–2; parts only. */
   blobVariant?: number
-  /** Arc only: curve depth as a fraction of the chord, -1.5..1.5. */
+  /** Arc: curve depth as a fraction of the chord, -1.5..1.5. Crescent: concavity 0.1–0.9. */
   bend?: number
+  /** Polygon only: number of sides, 3–12. Default 6. */
+  sides?: number
+  /** Burst only: spike count 5–24 (default 10) and depth 0.1–0.9 (default 0.45). */
+  spikes?: number
+  spikeDepth?: number
+  /** Squircle only: superellipse exponent 2.5–8. Default 4. */
+  exponent?: number
   /** Clip this part to the body silhouette — bands/stripes end exactly at the edge. */
   clipToBody?: boolean
   fill: Fill

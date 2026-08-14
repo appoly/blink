@@ -310,7 +310,10 @@ export function expressionCss(
     )
   }
 
-  const bodyShapeAnims: string[] = []
+  // Split targets: `d` morphs go on every .avatar-body-shape (fill path,
+  // clipPath copy, sketchy stroke overlay); fill flushes only on the fill path.
+  const bodyMorphAnims: string[] = []
+  const bodyFillAnims: string[] = []
 
   if (def.flush) {
     // Blends the body colour toward the flush colour and back. Intensity is
@@ -327,7 +330,7 @@ export function expressionCss(
     if (project.body.fill.type === 'solid') {
       const animName = `${ns}-${def.name}-flush`
       lines.push(`@keyframes ${animName} {\n${flushFrames(project.body.fill.color, 'fill')}\n}`)
-      bodyShapeAnims.push(`${animName} ${duration}s ease-in-out ${iters} both`)
+      bodyFillAnims.push(`${animName} ${duration}s ease-in-out ${iters} both`)
     } else {
       // Gradient bodies flush by animating each stop-color.
       const stops = [project.body.fill.color, project.body.fill.color2 ?? darken(project.body.fill.color)]
@@ -335,7 +338,7 @@ export function expressionCss(
         const animName = `${ns}-${def.name}-flush${i}`
         lines.push(`@keyframes ${animName} {\n${flushFrames(base, 'stop-color')}\n}`)
         lines.push(
-          `${scope} linearGradient[id$="-body-grad"] stop:nth-child(${i + 1}) {\n` +
+          `${scope} [id$="-body-grad"] stop:nth-child(${i + 1}) {\n` +
             `  animation: ${animName} ${duration}s ease-in-out ${iters} both;\n${PLAY_VARS}\n}`,
         )
       })
@@ -347,12 +350,20 @@ export function expressionCss(
     // squash transform, so hops land with a wobble instead of a scaled oval.
     const animName = `${ns}-${def.name}-blob`
     lines.push(`@keyframes ${animName} {\n${blobMorphKeyframes(project, def, settings.intensity)}\n}`)
-    bodyShapeAnims.push(`${animName} ${duration}s cubic-bezier(0.45, 0, 0.55, 1) ${iters} both`)
+    bodyMorphAnims.push(`${animName} ${duration}s cubic-bezier(0.45, 0, 0.55, 1) ${iters} both`)
   }
 
-  if (bodyShapeAnims.length) {
+  if (bodyMorphAnims.length) {
     lines.push(
-      `${scope} .avatar-body-shape {\n  animation: ${bodyShapeAnims.join(', ')};\n${PLAY_VARS}\n}`,
+      `${scope} .avatar-body-shape {\n  animation: ${bodyMorphAnims.join(', ')};\n${PLAY_VARS}\n}`,
+    )
+  }
+  if (bodyFillAnims.length) {
+    // Animation shorthands don't merge across rules, so this later rule must
+    // repeat the morph animations or the fill path (which matches both
+    // selectors) would lose them to the cascade.
+    lines.push(
+      `${scope} .avatar-body-fill {\n  animation: ${[...bodyFillAnims, ...bodyMorphAnims].join(', ')};\n${PLAY_VARS}\n}`,
     )
   }
 

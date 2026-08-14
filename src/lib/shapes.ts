@@ -246,16 +246,139 @@ export function arcBandPath(w: number, h: number, bend = 0.6): string {
   ].join(' ')
 }
 
-export function shapePath(
-  kind: PartKind,
-  w: number,
-  h: number,
-  cornerRadius: number,
-  blobVariant = 0,
-  corners?: CornerRadii | null,
-  pinch = 0,
-  bend = 0.6,
-): string {
+/** Regular polygon on the w×h ellipse, flat-ish top vertex up, optional rounded corners. */
+export function polygonPath(w: number, h: number, sides = 6, cornerRadius = 0): string {
+  const n = Math.max(3, Math.min(12, Math.round(sides)))
+  const verts: { x: number; y: number }[] = []
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / n
+    verts.push({ x: Math.cos(a) * (w / 2), y: Math.sin(a) * (h / 2) })
+  }
+  if (cornerRadius <= 0) {
+    return `M ${verts.map((v) => `${f(v.x)} ${f(v.y)}`).join(' L ')} Z`
+  }
+  // Rounded vertices: pull each corner's entry/exit points back along the
+  // edges and bridge with a quadratic through the vertex.
+  const pts = verts.map((v, i) => {
+    const prev = verts[(i - 1 + n) % n]
+    const next = verts[(i + 1) % n]
+    const along = (a: { x: number; y: number }, b: { x: number; y: number }, dist: number) => {
+      const len = Math.hypot(b.x - a.x, b.y - a.y) || 1
+      const t = Math.min(0.5, dist / len)
+      return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }
+    }
+    return { entry: along(v, prev, cornerRadius), exit: along(v, next, cornerRadius), v }
+  })
+  const segs = [`M ${f(pts[0].exit.x)} ${f(pts[0].exit.y)}`]
+  for (let i = 1; i <= n; i++) {
+    const p = pts[i % n]
+    segs.push(`L ${f(p.entry.x)} ${f(p.entry.y)}`, `Q ${f(p.v.x)} ${f(p.v.y)} ${f(p.exit.x)} ${f(p.exit.y)}`)
+  }
+  return segs.join(' ') + ' Z'
+}
+
+/** Spiky burst — a generalised star with adjustable point count and depth. */
+export function burstPath(w: number, h: number, spikes = 10, spikeDepth = 0.45): string {
+  const n = Math.max(5, Math.min(24, Math.round(spikes)))
+  const inner = 1 - Math.max(0.1, Math.min(0.9, spikeDepth))
+  const points: string[] = []
+  for (let i = 0; i < n * 2; i++) {
+    const angle = -Math.PI / 2 + (i * Math.PI) / n
+    const scale = i % 2 === 0 ? 1 : inner
+    points.push(`${f(Math.cos(angle) * (w / 2) * scale)} ${f(Math.sin(angle) * (h / 2) * scale)}`)
+  }
+  return `M ${points.join(' L ')} Z`
+}
+
+/** Superellipse — between an ellipse (exponent 2) and a rounded box (8+). */
+export function squirclePath(w: number, h: number, exponent = 4): string {
+  const n = Math.max(2.5, Math.min(8, exponent))
+  const pts: { x: number; y: number }[] = []
+  const samples = 40
+  for (let i = 0; i < samples; i++) {
+    const t = (i / samples) * Math.PI * 2
+    const c = Math.cos(t)
+    const s = Math.sin(t)
+    pts.push({
+      x: (w / 2) * Math.sign(c) * Math.abs(c) ** (2 / n),
+      y: (h / 2) * Math.sign(s) * Math.abs(s) ** (2 / n),
+    })
+  }
+  return closedCatmullRom(pts)
+}
+
+/**
+ * Crescent with tips at (0, ±h/2), bulging right, concave left. `bend` is the
+ * fullness: 0.1 a thin sliver, 0.5 a half moon, 0.9 nearly gibbous.
+ */
+export function crescentPath(w: number, h: number, bend = 0.5): string {
+  const b = Math.max(0.1, Math.min(0.9, bend))
+  const rx = w / 2
+  const ry = h / 2
+  const innerRx = rx * Math.abs(1 - 2 * b)
+  const outer = `M 0 ${f(-ry)} A ${f(rx)} ${f(ry)} 0 0 1 0 ${f(ry)}`
+  if (innerRx < 0.5) return `${outer} L 0 ${f(-ry)} Z` // half moon
+  // Thin crescent (b < 0.5): inner edge bows right, same side as the outer.
+  const sweep = b < 0.5 ? 0 : 1
+  return `${outer} A ${f(innerRx)} ${f(ry)} 0 0 ${sweep} 0 ${f(-ry)} Z`
+}
+
+/**
+ * Teardrop: a circle sitting at the bottom of the box with a point at the
+ * top. `pinch` sharpens the sides — 0 bows them out (onion), 1 is a straight
+ * cone.
+ */
+export function teardropPath(w: number, h: number, pinch = 0.3): string {
+  const p = Math.max(0, Math.min(1, pinch))
+  // The tangent construction needs the apex outside the circle.
+  const r = Math.min(w / 2, h * 0.42)
+  const cy = h / 2 - r
+  const apex = { x: 0, y: -h / 2 }
+  const d = cy - apex.y // apex → centre distance, > r by the clamp above
+  const theta = Math.acos(r / d)
+  const tx = r * Math.sin(theta)
+  const ty = cy - r * Math.cos(theta)
+  // Sides: straight tangents when fully pinched, bowed outward when soft.
+  const bow = (1 - p) * r * 0.35
+  const mid = (x: number) => ({
+    x: (apex.x + x) / 2 + Math.sign(x) * bow,
+    y: (apex.y + ty) / 2,
+  })
+  const cr = mid(tx)
+  const cl = mid(-tx)
+  return [
+    `M 0 ${f(apex.y)}`,
+    `Q ${f(cr.x)} ${f(cr.y)} ${f(tx)} ${f(ty)}`,
+    `A ${f(r)} ${f(r)} 0 1 1 ${f(-tx)} ${f(ty)}`,
+    `Q ${f(cl.x)} ${f(cl.y)} 0 ${f(apex.y)}`,
+    'Z',
+  ].join(' ')
+}
+
+export interface ShapeOptions {
+  cornerRadius?: number
+  blobVariant?: number
+  corners?: CornerRadii | null
+  pinch?: number
+  bend?: number
+  sides?: number
+  spikes?: number
+  spikeDepth?: number
+  exponent?: number
+}
+
+export function shapePath(kind: PartKind, w: number, h: number, opts: ShapeOptions = {}): string {
+  const {
+    cornerRadius = 0,
+    blobVariant = 0,
+    corners = null,
+    pinch = 0,
+    bend = 0.6,
+    sides = 6,
+    spikes = 10,
+    spikeDepth = 0.45,
+    exponent = 4,
+  } = opts
   switch (kind) {
     case 'rect':
     case 'strip':
@@ -281,6 +404,17 @@ export function shapePath(
       return starPath(w, h)
     case 'heart':
       return heartPath(w, h)
+    case 'polygon':
+      return polygonPath(w, h, sides, cornerRadius)
+    case 'burst':
+      return burstPath(w, h, spikes, spikeDepth)
+    case 'squircle':
+      return squirclePath(w, h, exponent)
+    case 'crescent':
+      // Crescent's natural default is a half moon, not the arc's 0.6 bend.
+      return crescentPath(w, h, opts.bend ?? 0.5)
+    case 'teardrop':
+      return teardropPath(w, h, pinch)
   }
 }
 

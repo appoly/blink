@@ -4,6 +4,7 @@ import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
 import { PALETTES } from '../../lib/palettes'
 import { bandOf, clonePart, setBand, type Band } from '../../lib/parts'
+import { darken } from '../../lib/shapes'
 import type { BodyKind, EyeStyle, Fill, MouthStyle, Part, PartKind, Stroke } from '../../types/avatar'
 
 const editor = useEditorStore()
@@ -26,6 +27,43 @@ function setFillColor(fill: Fill, color: string) {
 
 function toggleStroke(target: { stroke: Stroke | null }) {
   target.stroke = target.stroke ? null : { color: '#5c4327', width: 3 }
+  commit()
+}
+
+function setStrokeStyle(stroke: Stroke, e: Event) {
+  const style = (e.target as HTMLSelectElement).value as NonNullable<Stroke['style']>
+  stroke.style = style === 'solid' ? undefined : style
+  commit()
+}
+
+function setGradientType(fill: Fill, e: Event) {
+  const type = (e.target as HTMLSelectElement).value as NonNullable<Fill['gradientType']>
+  fill.gradientType = type === 'linear' ? undefined : type
+  commit()
+}
+
+/** Clearing colour2 returns the second stop to the auto-darkened shade. */
+function resetColor2(fill: Fill) {
+  fill.color2 = undefined
+  commit()
+}
+
+/** Seed shape params the first time a kind needing them is chosen. */
+function seedKindParams(target: { kind: PartKind } & Partial<Pick<Part, 'sides' | 'spikes' | 'spikeDepth' | 'exponent' | 'pinch' | 'bend'>>) {
+  const kind = target.kind
+  if (kind === 'polygon' && target.sides == null) target.sides = 6
+  if (kind === 'burst') {
+    if (target.spikes == null) target.spikes = 10
+    if (target.spikeDepth == null) target.spikeDepth = 0.45
+  }
+  if (kind === 'squircle' && target.exponent == null) target.exponent = 4
+  if (kind === 'crescent' && target.bend == null) target.bend = 0.5
+  if (kind === 'teardrop' && !target.pinch) target.pinch = 0.3
+}
+
+function setBodyKind(e: Event) {
+  project.value.body.kind = (e.target as HTMLSelectElement).value as BodyKind
+  seedKindParams(project.value.body)
   commit()
 }
 
@@ -64,6 +102,7 @@ function setKind(part: Part, e: Event) {
   part.kind = kind
   if (kind === 'arc' && part.bend == null) part.bend = 0.6
   if (kind === 'rect' && part.cornerRadius === 0) part.cornerRadius = 6
+  seedKindParams(part)
   commit()
 }
 
@@ -75,6 +114,9 @@ const BODY_KINDS = [
   ['trapezoid', 'Trapezoid'],
   ['tapered', 'Tapered — wide top'],
   ['blob', 'Blob'],
+  ['polygon', 'Polygon'],
+  ['burst', 'Burst — spiky'],
+  ['squircle', 'Squircle'],
 ] as const
 
 const PART_KINDS = [
@@ -89,6 +131,11 @@ const PART_KINDS = [
   ['star', 'Star'],
   ['heart', 'Heart'],
   ['strip', 'Strip'],
+  ['polygon', 'Polygon'],
+  ['burst', 'Burst — spiky'],
+  ['squircle', 'Squircle'],
+  ['crescent', 'Crescent'],
+  ['teardrop', 'Teardrop'],
 ] as const
 
 const EYE_STYLES = ['round', 'oval', 'halfmoon', 'bean'] as const
@@ -102,7 +149,7 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
       <div class="section-title">Body</div>
       <div class="field">
         <label>Shape</label>
-        <select :value="project.body.kind" @change="project.body.kind = ($event.target as HTMLSelectElement).value as BodyKind; commit()">
+        <select :value="project.body.kind" @change="setBodyKind($event)">
           <option v-for="[kind, label] in BODY_KINDS" :key="kind" :value="kind">{{ label }}</option>
         </select>
       </div>
@@ -120,7 +167,7 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           <input type="number" style="width: 56px" :value="project.body.height" @change="project.body.height = num($event); commit()" />
         </div>
       </div>
-      <div v-if="project.body.kind === 'rect'" class="field">
+      <div v-if="project.body.kind === 'rect' || project.body.kind === 'polygon'" class="field">
         <label>Corner radius</label>
         <input type="range" min="0" max="80" :value="project.body.cornerRadius" @input="project.body.cornerRadius = num($event)" @change="commit" />
       </div>
@@ -132,6 +179,24 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           <option :value="2">Puddle — wide</option>
         </select>
       </div>
+      <div v-if="project.body.kind === 'polygon'" class="field">
+        <label>Sides</label>
+        <input type="range" min="3" max="12" step="1" :value="project.body.sides ?? 6" @input="project.body.sides = num($event)" @change="commit" />
+      </div>
+      <template v-if="project.body.kind === 'burst'">
+        <div class="field">
+          <label>Spikes</label>
+          <input type="range" min="5" max="24" step="1" :value="project.body.spikes ?? 10" @input="project.body.spikes = num($event)" @change="commit" />
+        </div>
+        <div class="field">
+          <label>Spike depth</label>
+          <input type="range" min="0.1" max="0.9" step="0.05" :value="project.body.spikeDepth ?? 0.45" @input="project.body.spikeDepth = num($event)" @change="commit" />
+        </div>
+      </template>
+      <div v-if="project.body.kind === 'squircle'" class="field">
+        <label>Roundness</label>
+        <input type="range" min="2.5" max="8" step="0.25" :value="project.body.exponent ?? 4" @input="project.body.exponent = num($event)" @change="commit" />
+      </div>
 
       <div class="section-title">Fill</div>
       <div class="field">
@@ -141,13 +206,33 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           @change="project.body.fill.type = ($event.target as HTMLSelectElement).value as Fill['type']; commit()"
         >
           <option value="solid">Solid</option>
-          <option value="gradient">Gradient (auto shade)</option>
+          <option value="gradient">Gradient</option>
         </select>
       </div>
       <div class="field">
         <label>Colour</label>
         <input type="color" :value="project.body.fill.color" @input="project.body.fill.color = ($event.target as HTMLInputElement).value" @change="commit" />
       </div>
+      <template v-if="project.body.fill.type === 'gradient'">
+        <div class="field">
+          <label>Colour 2</label>
+          <div class="row">
+            <input type="color" :value="project.body.fill.color2 ?? darken(project.body.fill.color)" @input="project.body.fill.color2 = ($event.target as HTMLInputElement).value" @change="commit" />
+            <button v-if="project.body.fill.color2" title="Back to the auto-darkened shade" @click="resetColor2(project.body.fill)">Auto</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Gradient</label>
+          <select :value="project.body.fill.gradientType ?? 'linear'" @change="setGradientType(project.body.fill, $event)">
+            <option value="linear">Linear</option>
+            <option value="radial">Radial</option>
+          </select>
+        </div>
+        <div v-if="(project.body.fill.gradientType ?? 'linear') === 'linear'" class="field">
+          <label>Angle</label>
+          <input type="range" min="0" max="360" step="15" :value="project.body.fill.gradientAngle ?? 90" @input="project.body.fill.gradientAngle = num($event)" @change="commit" />
+        </div>
+      </template>
       <div class="field">
         <label>Stroke</label>
         <div class="row">
@@ -157,6 +242,14 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
             <input type="number" style="width: 48px" min="1" max="20" :value="project.body.stroke.width" @change="project.body.stroke!.width = num($event); commit()" />
           </template>
         </div>
+      </div>
+      <div v-if="project.body.stroke" class="field">
+        <label>Stroke style</label>
+        <select :value="project.body.stroke.style ?? 'solid'" @change="setStrokeStyle(project.body.stroke!, $event)">
+          <option value="solid">Solid</option>
+          <option value="dashed">Dashed</option>
+          <option value="sketchy">Sketchy</option>
+        </select>
       </div>
 
       <div class="section-title">Palettes</div>
@@ -280,8 +373,8 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
         <label>Rotation</label>
         <input type="range" min="-180" max="180" :value="selectedPart.rotation" @input="selectedPart!.rotation = num($event)" @change="commit" />
       </div>
-      <div v-if="selectedPart.kind === 'lobe' || selectedPart.kind === 'capsule'" class="field">
-        <label>Pinch</label>
+      <div v-if="selectedPart.kind === 'lobe' || selectedPart.kind === 'capsule' || selectedPart.kind === 'teardrop'" class="field">
+        <label>{{ selectedPart.kind === 'teardrop' ? 'Point' : 'Pinch' }}</label>
         <div class="row">
           <input
             type="range"
@@ -326,6 +419,10 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           />
         </div>
       </div>
+      <div v-if="selectedPart.kind === 'crescent'" class="field">
+        <label>Fullness</label>
+        <input type="range" min="0.1" max="0.9" step="0.05" :value="selectedPart.bend ?? 0.5" @input="selectedPart!.bend = num($event)" @change="commit" />
+      </div>
       <div v-if="selectedPart.kind === 'blob'" class="field">
         <label>Blob preset</label>
         <select :value="selectedPart.blobVariant ?? 0" @change="selectedPart!.blobVariant = num($event); commit()">
@@ -333,6 +430,33 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           <option :value="1">Splodge — pear</option>
           <option :value="2">Puddle — wide</option>
         </select>
+      </div>
+      <template v-if="selectedPart.kind === 'polygon'">
+        <div class="field">
+          <label>Sides</label>
+          <input type="range" min="3" max="12" step="1" :value="selectedPart.sides ?? 6" @input="selectedPart!.sides = num($event)" @change="commit" />
+        </div>
+        <div class="field">
+          <label>Corner radius</label>
+          <div class="row">
+            <input type="range" min="0" max="60" :value="selectedPart.cornerRadius" @input="selectedPart!.cornerRadius = num($event)" @change="commit" />
+            <input type="number" style="width: 48px" min="0" :value="selectedPart.cornerRadius" @change="selectedPart!.cornerRadius = Math.max(0, num($event)); commit()" />
+          </div>
+        </div>
+      </template>
+      <template v-if="selectedPart.kind === 'burst'">
+        <div class="field">
+          <label>Spikes</label>
+          <input type="range" min="5" max="24" step="1" :value="selectedPart.spikes ?? 10" @input="selectedPart!.spikes = num($event)" @change="commit" />
+        </div>
+        <div class="field">
+          <label>Spike depth</label>
+          <input type="range" min="0.1" max="0.9" step="0.05" :value="selectedPart.spikeDepth ?? 0.45" @input="selectedPart!.spikeDepth = num($event)" @change="commit" />
+        </div>
+      </template>
+      <div v-if="selectedPart.kind === 'squircle'" class="field">
+        <label>Roundness</label>
+        <input type="range" min="2.5" max="8" step="0.25" :value="selectedPart.exponent ?? 4" @input="selectedPart!.exponent = num($event)" @change="commit" />
       </div>
       <template v-if="selectedPart.kind === 'rect' || selectedPart.kind === 'strip'">
         <div v-if="!selectedPart.corners" class="field">
@@ -382,6 +506,26 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           </select>
         </div>
       </div>
+      <template v-if="selectedPart.fill.type === 'gradient'">
+        <div class="field">
+          <label>Colour 2</label>
+          <div class="row">
+            <input type="color" :value="selectedPart.fill.color2 ?? darken(selectedPart.fill.color)" @input="selectedPart!.fill.color2 = ($event.target as HTMLInputElement).value" @change="commit" />
+            <button v-if="selectedPart.fill.color2" title="Back to the auto-darkened shade" @click="resetColor2(selectedPart!.fill)">Auto</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Gradient</label>
+          <select :value="selectedPart.fill.gradientType ?? 'linear'" @change="setGradientType(selectedPart!.fill, $event)">
+            <option value="linear">Linear</option>
+            <option value="radial">Radial</option>
+          </select>
+        </div>
+        <div v-if="(selectedPart.fill.gradientType ?? 'linear') === 'linear'" class="field">
+          <label>Angle</label>
+          <input type="range" min="0" max="360" step="15" :value="selectedPart.fill.gradientAngle ?? 90" @input="selectedPart!.fill.gradientAngle = num($event)" @change="commit" />
+        </div>
+      </template>
       <div class="field">
         <label>Stroke</label>
         <div class="row">
@@ -391,6 +535,14 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
             <input type="number" style="width: 48px" min="1" max="20" :value="selectedPart.stroke.width" @change="selectedPart!.stroke!.width = num($event); commit()" />
           </template>
         </div>
+      </div>
+      <div v-if="selectedPart.stroke" class="field">
+        <label>Stroke style</label>
+        <select :value="selectedPart.stroke.style ?? 'solid'" @change="setStrokeStyle(selectedPart!.stroke!, $event)">
+          <option value="solid">Solid</option>
+          <option value="dashed">Dashed</option>
+          <option value="sketchy">Sketchy</option>
+        </select>
       </div>
       <div class="field">
         <label>Mirror pair</label>

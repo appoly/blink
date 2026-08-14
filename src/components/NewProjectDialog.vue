@@ -3,9 +3,30 @@ import { computed, ref } from 'vue'
 import { useEditorStore } from '../stores/editor'
 import { useProjectStore } from '../stores/project'
 import { buildGenerationPrompt, extractJson } from '../lib/promptTemplate'
+import { PRESETS, type Preset } from '../lib/presets'
+import { buildAvatar, serializeNode } from '../lib/render'
 
 const editor = useEditorStore()
 const store = useProjectStore()
+
+const tab = ref<'presets' | 'ai'>('presets')
+
+// Static thumbnails, rendered once per open. Unique idPrefix per card — repeated
+// serialized SVGs otherwise share gradient ids and all paint like the first.
+const presetCards = PRESETS.map((preset, i) => {
+  const render = buildAvatar(preset.build(), `np${i}`, [])
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${render.viewBox}">${render.nodes
+    .map((n) => serializeNode(n))
+    .join('')}</svg>`
+  return { ...preset, svg }
+})
+
+function startPreset(preset: Preset) {
+  store.replaceProject(preset.build(), null)
+  editor.select(null)
+  editor.tab = 'pose'
+  editor.newDialogOpen = false
+}
 
 const description = ref('')
 const personality = ref('')
@@ -39,12 +60,6 @@ async function copyPrompt() {
   setTimeout(() => (copied.value = false), 2000)
 }
 
-function startBlank() {
-  store.newProject()
-  editor.select(null)
-  editor.newDialogOpen = false
-}
-
 function importResponse() {
   error.value = null
   try {
@@ -66,10 +81,23 @@ function importResponse() {
         <button class="close" @click="editor.newDialogOpen = false">✕</button>
       </header>
 
-      <button class="blank" @click="startBlank">Start blank</button>
+      <div class="tabs">
+        <button :class="{ active: tab === 'presets' }" @click="tab = 'presets'">Presets</button>
+        <button :class="{ active: tab === 'ai' }" @click="tab = 'ai'">Generate with AI</button>
+      </div>
 
-      <div class="divider"><span>or describe it and let an AI draft it</span></div>
+      <template v-if="tab === 'presets'">
+        <div class="preset-grid">
+          <button v-for="card in presetCards" :key="card.name" class="preset" @click="startPreset(card)">
+            <span class="preset-thumb" v-html="card.svg" />
+            <span class="preset-name">{{ card.name }}</span>
+            <span class="preset-tagline">{{ card.tagline }}</span>
+          </button>
+        </div>
+        <p class="hint">Every preset is fully editable — they're starting points, not templates you're stuck with.</p>
+      </template>
 
+      <template v-else>
       <div class="step">
         <span class="step-num">1</span>
         <div class="step-body">
@@ -136,6 +164,7 @@ function importResponse() {
           <button class="primary" :disabled="!response.trim()" @click="importResponse">Import into builder</button>
         </div>
       </div>
+      </template>
     </div>
   </div>
 </template>
@@ -180,24 +209,67 @@ h2 {
   color: var(--text-dim);
 }
 
-.blank {
-  align-self: flex-start;
-}
-
-.divider {
+.tabs {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--text-dim);
-  font-size: 11px;
+  gap: 6px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
 }
 
-.divider::before,
-.divider::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
+.tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-dim);
+}
+
+.tabs button.active {
+  background: var(--accent-soft);
+  border-color: var(--border);
+  color: var(--accent);
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.preset {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 12px 8px 10px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.preset:hover {
+  border-color: var(--accent);
+}
+
+.preset-thumb {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+}
+
+.preset-thumb :deep(svg) {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.preset-name {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.preset-tagline {
+  font-size: 10px;
+  color: var(--text-dim);
 }
 
 .step {

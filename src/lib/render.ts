@@ -35,36 +35,90 @@ function fillAttrs(fill: Fill, gradientId: string | null): Record<string, string
   return { fill: fill.color }
 }
 
+// Sketchy strokes render on a separate overlay path, so the fill path gets none.
 function strokeAttrs(stroke: Stroke | null): Record<string, string | number> {
-  if (!stroke || stroke.width <= 0) return {}
-  return { stroke: stroke.color, 'stroke-width': stroke.width }
+  if (!stroke || stroke.width <= 0 || stroke.style === 'sketchy') return {}
+  const attrs: Record<string, string | number> = { stroke: stroke.color, 'stroke-width': stroke.width }
+  if (stroke.style === 'dashed') {
+    attrs['stroke-dasharray'] = `${(stroke.width * 2.4).toFixed(1)} ${(stroke.width * 1.8).toFixed(1)}`
+    attrs['stroke-linecap'] = 'round'
+  }
+  return attrs
+}
+
+const isSketchy = (stroke: Stroke | null): stroke is Stroke =>
+  !!stroke && stroke.width > 0 && stroke.style === 'sketchy'
+
+/** Hand-drawn stroke overlay — roughened by the shared turbulence filter. */
+function sketchStrokeNode(d: string, stroke: Stroke, sketchId: string, className?: string): SvgNode {
+  return el('path', {
+    ...(className ? { class: className } : {}),
+    d,
+    fill: 'none',
+    stroke: stroke.color,
+    'stroke-width': stroke.width,
+    filter: `url(#${sketchId})`,
+  })
+}
+
+// The expanded region keeps displaced stroke pixels from being clipped; the
+// fixed seed keeps the wobble identical across editor, export and GIF frames.
+function sketchFilterDef(id: string): SvgNode {
+  return el('filter', { id, x: '-15%', y: '-15%', width: '130%', height: '130%' }, [
+    el('feTurbulence', { type: 'fractalNoise', baseFrequency: 0.05, numOctaves: 2, seed: 7, result: 'n' }),
+    el('feDisplacementMap', { in: 'SourceGraphic', in2: 'n', scale: 5, xChannelSelector: 'R', yChannelSelector: 'G' }),
+  ])
 }
 
 function gradientDef(id: string, fill: Fill): SvgNode {
-  return el(
-    'linearGradient',
-    { id, x1: '0', y1: '0', x2: '0', y2: '1' },
-    [
-      el('stop', { offset: '0%', 'stop-color': fill.color }),
-      el('stop', { offset: '100%', 'stop-color': fill.color2 ?? darken(fill.color) }),
-    ],
-  )
+  const stops = [
+    el('stop', { offset: '0%', 'stop-color': fill.color }),
+    el('stop', { offset: '100%', 'stop-color': fill.color2 ?? darken(fill.color) }),
+  ]
+  if (fill.gradientType === 'radial') {
+    // Centred, slightly oversized so box corners still receive the ramp.
+    return el('radialGradient', { id, cx: '0.5', cy: '0.5', r: '0.65' }, stops)
+  }
+  const a = ((fill.gradientAngle ?? 90) * Math.PI) / 180
+  const dx = Math.cos(a) / 2
+  const dy = Math.sin(a) / 2
+  return el('linearGradient', { id, x1: 0.5 - dx, y1: 0.5 - dy, x2: 0.5 + dx, y2: 0.5 + dy }, stops)
 }
 
-function partNode(part: Part, gradientId: string | null, mirrored = false): SvgNode {
+function partNode(part: Part, gradientId: string | null, sketchId: string, mirrored = false): SvgNode {
   const x = mirrored ? -part.x : part.x
   const rotation = mirrored ? -part.rotation : part.rotation
   const transforms = [`translate(${x} ${part.y})`]
   if (rotation) transforms.push(`rotate(${rotation})`)
   if (mirrored) transforms.push('scale(-1 1)')
-  return el('g', { class: 'avatar-part', 'data-part-id': mirrored ? `${part.id}--mirror` : part.id, transform: transforms.join(' ') }, [
+  const d = shapePath(part.kind, part.width, part.height, {
+    cornerRadius: part.cornerRadius,
+    blobVariant: part.blobVariant,
+    corners: part.corners,
+    pinch: part.pinch,
+    bend: part.bend,
+    sides: part.sides,
+    spikes: part.spikes,
+    spikeDepth: part.spikeDepth,
+    exponent: part.exponent,
+  })
+  const sketchy = isSketchy(part.stroke)
+  const children = [
     el('path', {
-      d: shapePath(part.kind, part.width, part.height, part.cornerRadius, part.blobVariant ?? 0, part.corners, part.pinch ?? 0, part.bend ?? 0.6),
+      d,
       ...fillAttrs(part.fill, gradientId),
       ...strokeAttrs(part.stroke),
-      ...(part.opacity < 1 ? { opacity: part.opacity } : {}),
+      // With a sketch overlay, opacity moves to the group so both fade together.
+      ...(part.opacity < 1 && !sketchy ? { opacity: part.opacity } : {}),
     }),
-  ])
+  ]
+  if (sketchy) children.push(sketchStrokeNode(d, part.stroke!, sketchId))
+  return el('g', {
+    class: 'avatar-part',
+    'data-part-id': mirrored ? `${part.id}--mirror` : part.id,
+    transform: transforms.join(' '),
+    ...(part.opacity < 1 && sketchy ? { opacity: part.opacity } : {}),
+  }, children)
 }
 
 function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string): SvgNode {
@@ -262,6 +316,11 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
 
   const bodyClipId = `${idPrefix}-body-clip`
 
+  const sketchId = `${idPrefix}-sketch`
+  if (isSketchy(project.body.stroke) || project.parts.some((p) => !p.hidden && isSketchy(p.stroke))) {
+    defs.push(sketchFilterDef(sketchId))
+  }
+
   const partNodes = (parts: Part[]): SvgNode[] =>
     parts.flatMap((part) => {
       if (part.hidden) return []
@@ -270,8 +329,8 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
         gradId = `${idPrefix}-grad-${part.id}`
         defs.push(gradientDef(gradId, part.fill))
       }
-      const nodes = [partNode(part, gradId)]
-      if (part.mirror) nodes.push(partNode(part, gradId, true))
+      const nodes = [partNode(part, gradId, sketchId)]
+      if (part.mirror) nodes.push(partNode(part, gradId, sketchId, true))
       if (part.clipToBody) {
         return [el('g', { 'clip-path': `url(#${bodyClipId})` }, nodes)]
       }
@@ -279,15 +338,20 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
     })
 
   const clipId = `${idPrefix}-eye-clip`
+  const bodyD = shapePath(project.body.kind, project.body.width, project.body.height, {
+    cornerRadius: project.body.cornerRadius,
+    blobVariant: project.body.blobVariant,
+    sides: project.body.sides,
+    spikes: project.body.spikes,
+    spikeDepth: project.body.spikeDepth,
+    exponent: project.body.exponent,
+  })
   defs.push(el('clipPath', { id: clipId }, [el('path', { d: eyePath(project.eyes) })]))
   defs.push(
     el('clipPath', { id: bodyClipId }, [
       // Same class as the rendered body path so jelly `d` morphs animate the
       // clip in lockstep — clipped parts follow the sloshing outline exactly.
-      el('path', {
-        class: 'avatar-body-shape',
-        d: shapePath(project.body.kind, project.body.width, project.body.height, project.body.cornerRadius, project.body.blobVariant),
-      }),
+      el('path', { class: 'avatar-body-shape', d: bodyD }),
     ]),
   )
 
@@ -296,14 +360,21 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
   const mid = partNodes(project.parts.filter((p) => !p.behindBody && !p.aboveFace))
   const overlay = partNodes(project.parts.filter((p) => !p.behindBody && p.aboveFace))
 
-  const body = el('g', { class: 'avatar-body' }, [
+  // The fill path carries an extra class so expression flushes can animate its
+  // fill without touching the clipPath copy or the sketchy stroke overlay,
+  // which share `avatar-body-shape` for the blob d-morph.
+  const bodyChildren = [
     el('path', {
-      class: 'avatar-body-shape',
-      d: shapePath(project.body.kind, project.body.width, project.body.height, project.body.cornerRadius, project.body.blobVariant),
+      class: 'avatar-body-shape avatar-body-fill',
+      d: bodyD,
       ...fillAttrs(project.body.fill, bodyGradientId),
       ...strokeAttrs(project.body.stroke),
     }),
-  ])
+  ]
+  if (isSketchy(project.body.stroke)) {
+    bodyChildren.push(sketchStrokeNode(bodyD, project.body.stroke, sketchId, 'avatar-body-shape'))
+  }
+  const body = el('g', { class: 'avatar-body' }, bodyChildren)
 
   const propNames = expressionNames ?? allExpressionNames(project)
   const props = propNames.flatMap((name) => {
@@ -334,7 +405,7 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
   }
 }
 
-const VOID_OK = new Set(['stop', 'circle', 'path', 'rect', 'ellipse', 'line'])
+const VOID_OK = new Set(['stop', 'circle', 'path', 'rect', 'ellipse', 'line', 'feTurbulence', 'feDisplacementMap'])
 
 export function serializeNode(node: SvgNode, indent = ''): string {
   const attrs = Object.entries(node.attrs)
