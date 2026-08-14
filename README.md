@@ -19,6 +19,8 @@ Stuck for a design? The New dialog can build a copy-paste prompt for any AI chat
 
 ## Running
 
+You'll need Node 20+ and Rust ([rustup.rs](https://rustup.rs)) — Tauri compiles a native wrapper, so `cargo` has to be on your PATH. On macOS, install the Xcode command line tools too (`xcode-select --install`).
+
 ```sh
 npm install
 npm run tauri dev     # desktop app
