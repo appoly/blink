@@ -143,19 +143,17 @@ export function defaultProject(): AvatarProject {
   return {
     version: 1,
     name: 'MyAvatar',
-    // Default character (and app mascot): "Pip" — a mint-teal blob with
-    // rosy cheeks and big sparkly eyes. The two ear-nubs wear the Appoly
-    // brand colours (red left, navy right) and tilt outward like the two
-    // strokes of the logo's "A". Deliberately uses one of everything:
-    // gradient fill, behindBody parts, mirrored blush, pupil highlights —
-    // so the default doubles as a feature demo.
+    // Default character (and app mascot): "Pip" — a soft white round with
+    // big sparkly eyes. The two ear-nubs wear the Appoly brand colours
+    // (red left, navy right) and tilt outward like the two strokes of the
+    // logo's "A".
     body: {
-      kind: 'blob',
-      width: 196,
+      kind: 'circle',
+      width: 176,
       height: 178,
       cornerRadius: 0,
       blobVariant: 1,
-      fill: { type: 'gradient', color: '#66d6b8' }, // auto-darkens toward the base
+      fill: { type: 'gradient', color: '#ededed' }, // auto-darkens toward the base
       stroke: null,
     },
     parts: [
@@ -199,33 +197,13 @@ export function defaultProject(): AvatarProject {
         behindBody: true,
         aboveFace: false,
       },
-      {
-        id: 'blush',
-        name: 'Blush',
-        kind: 'ellipse',
-        x: 52,
-        y: 16,
-        width: 26,
-        height: 13,
-        rotation: -8,
-        cornerRadius: 0,
-        corners: null,
-        fill: { type: 'solid', color: '#f78fa7' },
-        stroke: null,
-        opacity: 0.7,
-        hidden: false,
-        locked: false,
-        mirror: true,
-        behindBody: false,
-        aboveFace: false,
-      },
     ],
     eyes: {
       style: 'round',
-      spacing: 36,
-      offsetY: -22,
-      size: 19,
-      squash: 1.05, // a touch wide-awake
+      spacing: 32,
+      offsetY: -32,
+      size: 21,
+      squash: 1.2, // wide-awake
       pupilSize: 0.6,
       highlight: true,
       color: '#ffffff',
@@ -234,9 +212,9 @@ export function defaultProject(): AvatarProject {
     },
     mouth: {
       style: 'smile',
-      offsetY: 26,
-      width: 42,
-      height: 14,
+      offsetY: 29,
+      width: 53,
+      height: 15,
       curvature: 0.7,
       color: '#243036',
     },
