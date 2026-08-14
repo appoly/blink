@@ -7,11 +7,14 @@
     <clipPath id="snap-eye-clip">
       <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" />
     </clipPath>
+    <clipPath id="snap-body-clip">
+      <path d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" />
+    </clipPath>
   </defs>
   <g class="avatar-root">
     <g class="avatar-squash">
       <g class="avatar-body">
-        <path d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" fill="url(#snap-body-grad)" />
+        <path class="avatar-body-shape" d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" fill="url(#snap-body-grad)" />
       </g>
       <g class="avatar-part" data-part-id="tape" transform="translate(0 -62)">
         <path d="M -88 -7 h 176 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 h -176 a 2 2 0 0 1 -2 -2 v -10 a 2 2 0 0 1 2 -2 Z" fill="#c98d52" />
@@ -72,7 +75,7 @@
         </g>
         <g class="avatar-mouth-wrap" transform="translate(0 28)">
           <g class="avatar-mouth-anim">
-            <path class="avatar-mouth" d="M -22 0 Q 0 14 22 0" fill="none" stroke="#2b2b2b" stroke-width="3.5" stroke-linecap="round" />
+            <path class="avatar-mouth" d="M -22 0 Q 0 16.5 22 0" fill="none" stroke="#12224a" stroke-width="2.75" stroke-linecap="round" />
           </g>
         </g>
       </g>

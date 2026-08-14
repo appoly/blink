@@ -19,7 +19,7 @@ Respond with ONLY a single JSON object. No markdown fences, no commentary before
     "width": 120-260,
     "height": 120-260,
     "cornerRadius": 0-60,            // rect only
-    "blobVariant": 0 | 1 | 2,        // blob only
+    "blobVariant": 0 | 1 | 2,        // blob only: 0 pebble (round), 1 splodge (pear), 2 puddle (wide)
     "fill": { "type": "solid" | "gradient", "color": "#rrggbb" },   // gradient auto-derives a darker bottom stop
     "stroke": null | { "color": "#rrggbb", "width": 1-8 }
   },
@@ -28,12 +28,16 @@ Respond with ONLY a single JSON object. No markdown fences, no commentary before
     {
       "id": "unique-short-id",
       "name": "Human label",
-      "kind": "rect" | "circle" | "ellipse" | "capsule" | "trapezoid" | "blob" | "triangle" | "star" | "heart" | "strip",
+      "kind": "rect" | "circle" | "ellipse" | "capsule" | "lobe" | "arc" | "trapezoid" | "blob" | "triangle" | "star" | "heart" | "strip",
       "x": number, "y": number,      // centre; keep within the body bounds +/- 30
       "width": number, "height": number,
       "rotation": degrees,
       "cornerRadius": number,                  // uniform radius (rect/strip)
       "corners": null | [tl, tr, br, bl],      // per-corner radii, overrides cornerRadius (rect/strip)
+      "pinch": 0-1,                   // lobe/capsule: cinches the +Y end into a waist (ears, horns, tails)
+      "blobVariant": 0 | 1 | 2,       // blob parts only
+      "bend": -1.5 to 1.5,            // arc only: curve depth as a fraction of width (0 = straight band)
+      "clipToBody": false,            // true trims the shape at the body silhouette (stripes/markings end exactly at the edge)
       "fill": { "type": "solid", "color": "#rrggbb" },
       "stroke": null | { "color": "#rrggbb", "width": 1-8 },
       "opacity": 0-1,
@@ -70,8 +74,11 @@ Respond with ONLY a single JSON object. No markdown fences, no commentary before
 
 ## Design rules
 - Cute and cohesive: 2-5 decorative parts, a harmonious palette (3-4 colours), a big readable face.
+- Blob bodies are a single dough silhouette (no baked-in ears or limbs). Prefer a gradient fill and no stroke. Variant 1 (splodge) is the default look.
 - Eyes sit in the upper third of the body; mouth slightly below centre.
+- "lobe" is the ear/horn/tail shape: a round tip with a pinched waist. Set "pinch" 0.4–0.7, rotate so the pinched end meets the body, and use "behindBody": true so the join tucks under. Mirror for a pair.
 - "strip" + "corners" is perfect for tape, lids and labels. A lid hugging the top of a rect body with cornerRadius 24 uses "corners": [24, 24, 0, 0] and width equal to the body width.
+- "arc" is a curved ribbon (width = chord, height = thickness, "bend" = curve depth). Combine with "clipToBody": true for stripes and markings that follow and end exactly at the body's edge — oversize them and let the clip trim.
 - Layering: tape/lids/labels keep "aboveFace": false so the face stays on top; ears and tails go "behindBody": true.
 - Use "mirror": true for anything that comes in symmetric pairs.
 - In "expressions", set "include": true for idle plus 2-4 moods that suit the character.

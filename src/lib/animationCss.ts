@@ -1,7 +1,7 @@
 import type { AvatarProject, ExpressionSettings } from '../types/avatar'
 import { EXPRESSIONS, TARGET_SELECTORS, type ExpressionDef, type Track, type TransformKeyframe } from './expressions'
 import { mouthBaseCurvature, mouthMorphPath } from './face'
-import { darken, mixHex } from './shapes'
+import { blobPath, darken, mixHex, type BlobDeform } from './shapes'
 
 /**
  * Generates the CSS that animates an avatar. Used verbatim by the editor
@@ -37,10 +37,93 @@ function unitScale(track: Track, project: AvatarProject): { x: number; y: number
   return { x: project.body.width / 100, y: project.body.height / 100 }
 }
 
-function transformValue(kf: TransformKeyframe, ref: { x: number; y: number }): string {
+/** Blob squash/stretch is punchier than rigid shapes — dough, not cardboard. */
+const BLOB_SQUASH = 1.35
+
+function ampScale(v: number | undefined, blobSquash: boolean): number {
+  const n = v ?? 1
+  if (!blobSquash || n === 1) return n
+  return 1 + (n - 1) * BLOB_SQUASH
+}
+
+function transformValue(
+  kf: TransformKeyframe,
+  ref: { x: number; y: number },
+  blobSquash = false,
+): string {
   const tx = (kf.tx ?? 0) * ref.x
   const ty = (kf.ty ?? 0) * ref.y
-  return `translate(${px(tx)}, ${px(ty)}) rotate(${deg(kf.r ?? 0)}) scale(${scale(kf.sx ?? 1)}, ${scale(kf.sy ?? 1)})`
+  return `translate(${px(tx)}, ${px(ty)}) rotate(${deg(kf.r ?? 0)}) scale(${scale(ampScale(kf.sx, blobSquash))}, ${scale(ampScale(kf.sy, blobSquash))})`
+}
+
+type SampledTransform = { tx: number; ty: number; r: number; sx: number; sy: number }
+
+function sampleTrack(track: Track | undefined, o: number): SampledTransform {
+  const rest = { tx: 0, ty: 0, r: 0, sx: 1, sy: 1 }
+  if (!track?.keyframes.length) return rest
+  const at = (kf: TransformKeyframe): SampledTransform => ({
+    tx: kf.tx ?? 0,
+    ty: kf.ty ?? 0,
+    r: kf.r ?? 0,
+    sx: kf.sx ?? 1,
+    sy: kf.sy ?? 1,
+  })
+  const kfs = track.keyframes
+  if (o <= kfs[0].o) return at(kfs[0])
+  for (let i = 0; i < kfs.length - 1; i++) {
+    if (o <= kfs[i + 1].o) {
+      const a = at(kfs[i])
+      const b = at(kfs[i + 1])
+      const span = kfs[i + 1].o - kfs[i].o
+      const t = span <= 0 ? 1 : (o - kfs[i].o) / span
+      return {
+        tx: a.tx + (b.tx - a.tx) * t,
+        ty: a.ty + (b.ty - a.ty) * t,
+        r: a.r + (b.r - a.r) * t,
+        sx: a.sx + (b.sx - a.sx) * t,
+        sy: a.sy + (b.sy - a.sy) * t,
+      }
+    }
+  }
+  return at(kfs[kfs.length - 1])
+}
+
+function blobDeformAt(def: ExpressionDef, o: number, intensity: number): BlobDeform {
+  const squash = sampleTrack(
+    def.tracks.find((t) => t.target === 'squash'),
+    o,
+  )
+  const root = sampleTrack(
+    def.tracks.find((t) => t.target === 'root'),
+    o,
+  )
+  const phase = (o / 100) * Math.PI * 2
+  return {
+    squash: 1 + (squash.sy - 1) * intensity,
+    slosh: ((root.r + squash.r) * 0.012 + Math.sin(phase) * 0.06) * intensity,
+    wobble: o / 100,
+    wobbleAmp: 0.045 * intensity,
+  }
+}
+
+function blobMorphKeyframes(project: AvatarProject, def: ExpressionDef, intensity: number): string {
+  const offsets = new Set<number>([0, 16, 33, 50, 66, 83, 100])
+  for (const track of def.tracks) {
+    if (track.target === 'squash' || track.target === 'root') {
+      for (const kf of track.keyframes) offsets.add(kf.o)
+    }
+  }
+  const squashTrack = def.tracks.find((t) => t.target === 'squash')
+  const { width, height, blobVariant } = project.body
+  return [...offsets]
+    .sort((a, b) => a - b)
+    .map((o) => {
+      const d = blobPath(width, height, blobVariant, blobDeformAt(def, o, intensity))
+      const matched = squashTrack?.keyframes.find((kf) => Math.abs(kf.o - o) < 0.05)
+      const ease = matched?.ease ? ` animation-timing-function: ${matched.ease};` : ''
+      return `  ${f(o)}% { d: path("${d}");${ease} }`
+    })
+    .join('\n')
 }
 
 function iterationCount(settings: ExpressionSettings): string {
@@ -130,7 +213,8 @@ export function expressionCss(
         // scaled: half intensity must not mean half-transparent eyelids.
         const opacity = kf.opacity !== undefined ? ` opacity: ${f(kf.opacity)};` : ''
         const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
-        return `  ${f(kf.o)}% { transform: ${transformValue(kf, ref)};${opacity}${ease} }`
+        const blobSquash = project.body.kind === 'blob' && track.target === 'squash'
+        return `  ${f(kf.o)}% { transform: ${transformValue(kf, ref, blobSquash)};${opacity}${ease} }`
       })
       .join('\n')
     lines.push(`@keyframes ${animName} {\n${frames}\n}`)
@@ -165,6 +249,8 @@ export function expressionCss(
     )
   }
 
+  const bodyShapeAnims: string[] = []
+
   if (def.flush) {
     // Blends the body colour toward the flush colour and back. Intensity is
     // baked into the blend (colours can't calc()); returns to the user's
@@ -180,9 +266,7 @@ export function expressionCss(
     if (project.body.fill.type === 'solid') {
       const animName = `${ns}-${def.name}-flush`
       lines.push(`@keyframes ${animName} {\n${flushFrames(project.body.fill.color, 'fill')}\n}`)
-      lines.push(
-        `${scope} .avatar-body > path {\n  animation: ${animName} ${duration}s ease-in-out ${iters} both;\n${PLAY_VARS}\n}`,
-      )
+      bodyShapeAnims.push(`${animName} ${duration}s ease-in-out ${iters} both`)
     } else {
       // Gradient bodies flush by animating each stop-color.
       const stops = [project.body.fill.color, project.body.fill.color2 ?? darken(project.body.fill.color)]
@@ -195,6 +279,20 @@ export function expressionCss(
         )
       })
     }
+  }
+
+  if (project.body.kind === 'blob') {
+    // Jelly outline: the path itself sloshes, independent of the uniform
+    // squash transform, so hops land with a wobble instead of a scaled oval.
+    const animName = `${ns}-${def.name}-blob`
+    lines.push(`@keyframes ${animName} {\n${blobMorphKeyframes(project, def, settings.intensity)}\n}`)
+    bodyShapeAnims.push(`${animName} ${duration}s cubic-bezier(0.45, 0, 0.55, 1) ${iters} both`)
+  }
+
+  if (bodyShapeAnims.length) {
+    lines.push(
+      `${scope} .avatar-body-shape {\n  animation: ${bodyShapeAnims.join(', ')};\n${PLAY_VARS}\n}`,
+    )
   }
 
   if (def.morph && mouthMorphPath(project.mouth, 0) !== null) {

@@ -35,7 +35,10 @@ function addShape(kind: PartKind) {
       @click="addShape(shape.kind)"
     >
       <svg viewBox="-14 -14 28 28">
-        <path :d="shapePath(shape.kind, shape.kind === 'strip' ? 24 : 20, shape.kind === 'strip' ? 8 : 20, 4)" fill="currentColor" />
+        <path
+          :d="shapePath(shape.kind, shape.kind === 'strip' || shape.kind === 'arc' ? 24 : shape.kind === 'lobe' ? 14 : 20, shape.kind === 'strip' ? 8 : shape.kind === 'lobe' ? 22 : shape.kind === 'arc' ? 7 : 20, 4, shape.kind === 'blob' ? 1 : 0, null, shape.kind === 'lobe' ? 0.55 : 0, 0.6)"
+          fill="currentColor"
+        />
       </svg>
     </button>
   </div>

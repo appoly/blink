@@ -57,11 +57,14 @@ function onAnimationEnd(event) {
       <clipPath id="avatar-eye-clip">
         <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" />
       </clipPath>
+      <clipPath id="avatar-body-clip">
+        <path d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" />
+      </clipPath>
     </defs>
     <g class="avatar-root">
       <g class="avatar-squash">
         <g class="avatar-body">
-          <path d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" fill="url(#avatar-body-grad)" />
+          <path class="avatar-body-shape" d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" fill="url(#avatar-body-grad)" />
         </g>
         <g class="avatar-part" data-part-id="tape" transform="translate(0 -62)">
           <path d="M -88 -7 h 176 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 h -176 a 2 2 0 0 1 -2 -2 v -10 a 2 2 0 0 1 2 -2 Z" fill="#c98d52" />
@@ -122,7 +125,7 @@ function onAnimationEnd(event) {
           </g>
           <g class="avatar-mouth-wrap" transform="translate(0 28)">
             <g class="avatar-mouth-anim">
-              <path class="avatar-mouth" d="M -22 0 Q 0 14 22 0" fill="none" stroke="#2b2b2b" stroke-width="3.5" stroke-linecap="round" />
+              <path class="avatar-mouth" d="M -22 0 Q 0 16.5 22 0" fill="none" stroke="#12224a" stroke-width="2.75" stroke-linecap="round" />
             </g>
           </g>
         </g>
@@ -295,10 +298,10 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-happy-mouthd {
-  0% { d: path("M -22 0 Q 0 16.8 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  40% { d: path("M -22 0 Q 0 28 22 0"); }
-  68% { d: path("M -22 0 Q 0 28 22 0"); }
-  100% { d: path("M -22 0 Q 0 16.8 22 0"); }
+  0% { d: path("M -22 0 Q 0 13.2 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  40% { d: path("M -22 0 Q 0 22 22 0"); }
+  68% { d: path("M -22 0 Q 0 22 22 0"); }
+  100% { d: path("M -22 0 Q 0 13.2 22 0"); }
 }
 
 .avatar.avatar-expr--happy .avatar-mouth {
@@ -388,10 +391,10 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-curious-mouthd {
-  0% { d: path("M -22 0 Q 0 4.2 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  0% { d: path("M -22 0 Q 0 3.3 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
   36% { d: path("M -22 0 Q 0 0 22 0"); }
   70% { d: path("M -22 0 Q 0 0 22 0"); }
-  100% { d: path("M -22 0 Q 0 4.2 22 0"); }
+  100% { d: path("M -22 0 Q 0 3.3 22 0"); }
 }
 
 .avatar.avatar-expr--curious .avatar-mouth {
@@ -516,11 +519,11 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-surprised-mouthd {
-  0% { d: path("M -22 0 Q 0 -1.4 22 0"); animation-timing-function: cubic-bezier(0.55, 0, 0.7, 0.3); }
-  22% { d: path("M -22 0 Q 0 -16.8 22 0"); }
-  76% { d: path("M -22 0 Q 0 -15.4 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  90% { d: path("M -22 0 Q 0 -1.4 22 0"); }
-  100% { d: path("M -22 0 Q 0 -1.4 22 0"); }
+  0% { d: path("M -22 0 Q 0 -1.1 22 0"); animation-timing-function: cubic-bezier(0.55, 0, 0.7, 0.3); }
+  22% { d: path("M -22 0 Q 0 -13.2 22 0"); }
+  76% { d: path("M -22 0 Q 0 -12.1 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  90% { d: path("M -22 0 Q 0 -1.1 22 0"); }
+  100% { d: path("M -22 0 Q 0 -1.1 22 0"); }
 }
 
 .avatar.avatar-expr--surprised .avatar-mouth {
@@ -776,11 +779,11 @@ function onAnimationEnd(event) {
 }
 
 @keyframes avatar-wink-mouthd {
-  0% { d: path("M -22 0 Q 0 16.8 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
-  24% { d: path("M -22 0 Q 0 26.6 22 0"); }
-  58% { d: path("M -22 0 Q 0 26.6 22 0"); }
-  80% { d: path("M -22 0 Q 0 16.8 22 0"); }
-  100% { d: path("M -22 0 Q 0 16.8 22 0"); }
+  0% { d: path("M -22 0 Q 0 13.2 22 0"); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  24% { d: path("M -22 0 Q 0 20.9 22 0"); }
+  58% { d: path("M -22 0 Q 0 20.9 22 0"); }
+  80% { d: path("M -22 0 Q 0 13.2 22 0"); }
+  100% { d: path("M -22 0 Q 0 13.2 22 0"); }
 }
 
 .avatar.avatar-expr--wink .avatar-mouth {

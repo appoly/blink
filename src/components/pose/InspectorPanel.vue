@@ -4,7 +4,7 @@ import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
 import { PALETTES } from '../../lib/palettes'
 import { bandOf, clonePart, setBand, type Band } from '../../lib/parts'
-import type { BodyKind, EyeStyle, Fill, MouthStyle, Part, Stroke } from '../../types/avatar'
+import type { BodyKind, EyeStyle, Fill, MouthStyle, Part, PartKind, Stroke } from '../../types/avatar'
 
 const editor = useEditorStore()
 const store = useProjectStore()
@@ -59,6 +59,15 @@ function setCorner(part: Part, index: number, e: Event) {
   commit()
 }
 
+function setKind(part: Part, e: Event) {
+  const kind = (e.target as HTMLSelectElement).value as PartKind
+  part.kind = kind
+  if (kind === 'lobe' && (part.pinch ?? 0) === 0) part.pinch = 0.55
+  if (kind === 'arc' && part.bend == null) part.bend = 0.6
+  if (kind === 'rect' && part.cornerRadius === 0) part.cornerRadius = 6
+  commit()
+}
+
 const BODY_KINDS = [
   ['rect', 'Rounded rect'],
   ['circle', 'Circle'],
@@ -66,6 +75,21 @@ const BODY_KINDS = [
   ['capsule', 'Capsule'],
   ['trapezoid', 'Trapezoid'],
   ['blob', 'Blob'],
+] as const
+
+const PART_KINDS = [
+  ['rect', 'Rounded rect'],
+  ['circle', 'Circle'],
+  ['ellipse', 'Ellipse'],
+  ['capsule', 'Capsule'],
+  ['lobe', 'Lobe'],
+  ['arc', 'Arc / curve'],
+  ['trapezoid', 'Trapezoid'],
+  ['blob', 'Blob'],
+  ['triangle', 'Triangle'],
+  ['star', 'Star'],
+  ['heart', 'Heart'],
+  ['strip', 'Strip'],
 ] as const
 
 const EYE_STYLES = ['round', 'oval', 'halfmoon', 'bean'] as const
@@ -104,9 +128,9 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
       <div v-if="project.body.kind === 'blob'" class="field">
         <label>Blob preset</label>
         <select :value="project.body.blobVariant" @change="project.body.blobVariant = num($event); commit()">
-          <option :value="0">Pebble</option>
-          <option :value="1">Splodge</option>
-          <option :value="2">Puddle</option>
+          <option :value="0">Pebble — round</option>
+          <option :value="1">Splodge — pear</option>
+          <option :value="2">Puddle — wide</option>
         </select>
       </div>
 
@@ -234,6 +258,12 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
     <template v-else-if="selectedPart">
       <div class="section-title">{{ selectedPart.name }}</div>
       <div class="field">
+        <label>Shape</label>
+        <select :value="selectedPart.kind" @change="setKind(selectedPart!, $event)">
+          <option v-for="[kind, label] in PART_KINDS" :key="kind" :value="kind">{{ label }}</option>
+        </select>
+      </div>
+      <div class="field">
         <label>X / Y</label>
         <div class="row">
           <input type="number" style="width: 62px" :value="Math.round(selectedPart.x)" @change="selectedPart!.x = num($event); commit()" />
@@ -250,6 +280,60 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
       <div class="field">
         <label>Rotation</label>
         <input type="range" min="-180" max="180" :value="selectedPart.rotation" @input="selectedPart!.rotation = num($event)" @change="commit" />
+      </div>
+      <div v-if="selectedPart.kind === 'lobe' || selectedPart.kind === 'capsule'" class="field">
+        <label>Pinch</label>
+        <div class="row">
+          <input
+            type="range"
+            min="0"
+            max="0.9"
+            step="0.05"
+            :value="selectedPart.pinch ?? 0"
+            @input="selectedPart!.pinch = num($event)"
+            @change="commit"
+          />
+          <input
+            type="number"
+            style="width: 48px"
+            min="0"
+            max="0.9"
+            step="0.05"
+            :value="selectedPart.pinch ?? 0"
+            @change="selectedPart!.pinch = Math.max(0, Math.min(0.9, num($event))); commit()"
+          />
+        </div>
+      </div>
+      <div v-if="selectedPart.kind === 'arc'" class="field">
+        <label>Bend</label>
+        <div class="row">
+          <input
+            type="range"
+            min="-1.5"
+            max="1.5"
+            step="0.05"
+            :value="selectedPart.bend ?? 0.6"
+            @input="selectedPart!.bend = num($event)"
+            @change="commit"
+          />
+          <input
+            type="number"
+            style="width: 48px"
+            min="-1.5"
+            max="1.5"
+            step="0.05"
+            :value="selectedPart.bend ?? 0.6"
+            @change="selectedPart!.bend = Math.max(-1.5, Math.min(1.5, num($event))); commit()"
+          />
+        </div>
+      </div>
+      <div v-if="selectedPart.kind === 'blob'" class="field">
+        <label>Blob preset</label>
+        <select :value="selectedPart.blobVariant ?? 0" @change="selectedPart!.blobVariant = num($event); commit()">
+          <option :value="0">Pebble — round</option>
+          <option :value="1">Splodge — pear</option>
+          <option :value="2">Puddle — wide</option>
+        </select>
       </div>
       <template v-if="selectedPart.kind === 'rect' || selectedPart.kind === 'strip'">
         <div v-if="!selectedPart.corners" class="field">
@@ -314,6 +398,15 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
         <input type="checkbox" :checked="selectedPart.mirror" @change="selectedPart!.mirror = !selectedPart!.mirror; commit()" />
       </div>
       <div class="field">
+        <label>Clip to body</label>
+        <input
+          type="checkbox"
+          :checked="!!selectedPart.clipToBody"
+          title="Trim this shape at the body's edge — bands and stripes end exactly at the silhouette"
+          @change="selectedPart!.clipToBody = !selectedPart!.clipToBody; commit()"
+        />
+      </div>
+      <div class="field">
         <label>Layer</label>
         <select :value="bandOf(selectedPart)" @change="setLayer(selectedPart!, $event)">
           <option value="back">Behind body</option>
@@ -325,7 +418,7 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
         <button @click="duplicatePart(selectedPart!)">Duplicate (⌘D)</button>
         <button class="danger" @click="deletePart(selectedPart!)">Delete</button>
       </div>
-      <p class="hint">Drag to move · handles resize (⇧ keeps ratio, ⌥ from centre) · arrows nudge (⇧ = 10px) · ⌘C/⌘V copy &amp; paste</p>
+      <p class="hint">Drag to move · handles resize (⇧ keeps ratio, ⌥ from centre) · arrows nudge (⇧ = 10px) · ⌘C/⌘V copy &amp; paste. Lobe pinch cinches the base — rotate to point ears, horns or tails, and put them behind the body so the join tucks in.</p>
     </template>
 
     <p v-else class="hint">Select the body, eyes, mouth or a shape to edit its properties. Drag shapes in from the palette above the canvas.</p>

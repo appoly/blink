@@ -58,7 +58,7 @@ function partNode(part: Part, gradientId: string | null, mirrored = false): SvgN
   if (mirrored) transforms.push('scale(-1 1)')
   return el('g', { class: 'avatar-part', 'data-part-id': mirrored ? `${part.id}--mirror` : part.id, transform: transforms.join(' ') }, [
     el('path', {
-      d: shapePath(part.kind, part.width, part.height, part.cornerRadius, 0, part.corners),
+      d: shapePath(part.kind, part.width, part.height, part.cornerRadius, part.blobVariant ?? 0, part.corners, part.pinch ?? 0, part.bend ?? 0.6),
       ...fillAttrs(part.fill, gradientId),
       ...strokeAttrs(part.stroke),
       ...(part.opacity < 1 ? { opacity: part.opacity } : {}),
@@ -222,7 +222,13 @@ export function avatarBounds(project: AvatarProject): { minX: number; minY: numb
   let maxX = b.width / 2
   let minY = -b.height / 2
   let maxY = b.height / 2
+  if (b.kind === 'blob') {
+    // Right-side squish can sit a little past the nominal box.
+    maxX += b.width * 0.04
+  }
   for (const part of project.parts) {
+    // Body-clipped parts can never paint outside the body.
+    if (part.clipToBody) continue
     // Use the rotated-bounds diagonal so rotated parts stay inside.
     const half = Math.hypot(part.width, part.height) / 2
     const xs = part.mirror ? [part.x, -part.x] : [part.x]
@@ -253,6 +259,8 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
   const bodyGradientId = project.body.fill.type === 'gradient' ? `${idPrefix}-body-grad` : null
   if (bodyGradientId) defs.push(gradientDef(bodyGradientId, project.body.fill))
 
+  const bodyClipId = `${idPrefix}-body-clip`
+
   const partNodes = (parts: Part[]): SvgNode[] =>
     parts.flatMap((part) => {
       if (part.hidden) return []
@@ -263,11 +271,21 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
       }
       const nodes = [partNode(part, gradId)]
       if (part.mirror) nodes.push(partNode(part, gradId, true))
+      if (part.clipToBody) {
+        return [el('g', { 'clip-path': `url(#${bodyClipId})` }, nodes)]
+      }
       return nodes
     })
 
   const clipId = `${idPrefix}-eye-clip`
   defs.push(el('clipPath', { id: clipId }, [el('path', { d: eyePath(project.eyes) })]))
+  defs.push(
+    el('clipPath', { id: bodyClipId }, [
+      el('path', {
+        d: shapePath(project.body.kind, project.body.width, project.body.height, project.body.cornerRadius, project.body.blobVariant),
+      }),
+    ]),
+  )
 
   // Three z-bands: behind body → above body (below face) → above face.
   const behind = partNodes(project.parts.filter((p) => p.behindBody))
@@ -276,6 +294,7 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', express
 
   const body = el('g', { class: 'avatar-body' }, [
     el('path', {
+      class: 'avatar-body-shape',
       d: shapePath(project.body.kind, project.body.width, project.body.height, project.body.cornerRadius, project.body.blobVariant),
       ...fillAttrs(project.body.fill, bodyGradientId),
       ...strokeAttrs(project.body.stroke),
