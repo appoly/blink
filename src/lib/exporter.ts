@@ -28,8 +28,9 @@ function indentBlock(text: string, indent: string): string {
 /** The single-file .vue component. Zero runtime dependencies. */
 export function generateComponent(project: AvatarProject): string {
   const name = componentName(project)
-  const render = buildAvatar(project, 'avatar')
   const expressions = includedExpressions(project)
+  // Only embed props for expressions that actually ship.
+  const render = buildAvatar(project, 'avatar', expressions)
   const playOnce = expressions.filter((n) => {
     const loop = project.expressions[n]?.loop
     return loop === 'once' || typeof loop === 'number'
@@ -160,7 +161,8 @@ The idle blink runs in every expression. Switching \`expression\` cross-fades th
 
 /** Static SVG snapshot of the current pose (no animation). */
 export function generateSvgSnapshot(project: AvatarProject): string {
-  const render = buildAvatar(project, 'snap')
+  // No expression props in a static snapshot — they only exist mid-animation.
+  const render = buildAvatar(project, 'snap', [])
   const children = render.nodes.map((n) => serializeNode(n, '  ')).join('\n')
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${render.viewBox}" width="${Math.round(render.width * 2)}" height="${Math.round(render.height * 2)}">\n${children}\n</svg>\n`
 }

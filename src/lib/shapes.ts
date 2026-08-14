@@ -140,6 +140,21 @@ export function shapePath(
   }
 }
 
+/** Mix two hex colours: t = 0 → a, t = 1 → b. Used for the expression flush. */
+export function mixHex(a: string, b: string, t: number): string {
+  const parse = (hex: string) => {
+    const m = hex.replace('#', '')
+    const full = m.length === 3 ? m.split('').map((c) => c + c).join('') : m
+    const num = parseInt(full, 16)
+    return Number.isNaN(num) ? null : [(num >> 16) & 255, (num >> 8) & 255, num & 255]
+  }
+  const ca = parse(a)
+  const cb = parse(b)
+  if (!ca || !cb) return a
+  const mixed = ca.map((v, i) => Math.round(v + (cb[i] - v) * t))
+  return `#${((mixed[0] << 16) | (mixed[1] << 8) | mixed[2]).toString(16).padStart(6, '0')}`
+}
+
 /** Darken a hex colour by a factor (0–1) — used for auto gradient stops. */
 export function darken(hex: string, amount = 0.18): string {
   const m = hex.replace('#', '')

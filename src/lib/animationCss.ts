@@ -1,6 +1,7 @@
 import type { AvatarProject, ExpressionSettings } from '../types/avatar'
-import { EXPRESSIONS, TARGET_SELECTORS, type ExpressionDef, type TransformKeyframe } from './expressions'
+import { EXPRESSIONS, TARGET_SELECTORS, type ExpressionDef, type Track, type TransformKeyframe } from './expressions'
 import { mouthCurvePath } from './face'
+import { darken, mixHex } from './shapes'
 
 /**
  * Generates the CSS that animates an avatar. Used verbatim by the editor
@@ -20,13 +21,28 @@ const PLAY_VARS =
 
 const f = (n: number) => Number(n.toFixed(3))
 
-function transformValue(kf: TransformKeyframe, intensity: number): string {
-  const tx = f((kf.tx ?? 0) * intensity)
-  const ty = f((kf.ty ?? 0) * intensity)
-  const r = f((kf.r ?? 0) * intensity)
-  const sx = f(1 + ((kf.sx ?? 1) - 1) * intensity)
-  const sy = f(1 + ((kf.sy ?? 1) - 1) * intensity)
-  return `translate(${tx}px, ${ty}px) rotate(${r}deg) scale(${sx}, ${sy})`
+// Amplitudes scale live via the --avatar-intensity custom property (set per
+// expression scope), so the keyframes themselves are intensity-independent.
+const I = 'var(--avatar-intensity, 1)'
+const px = (v: number) => (v === 0 ? '0px' : `calc(${f(v)}px * ${I})`)
+const deg = (v: number) => (v === 0 ? '0deg' : `calc(${f(v)}deg * ${I})`)
+const scale = (v: number) => (v === 1 ? '1' : `calc(1 + ${f(v - 1)} * ${I})`)
+
+/**
+ * Reference size for a track's '%' translations: body size for body/face
+ * targets, eye size for pupils. Resolved at generation time so motion scales
+ * with the character's proportions instead of hardcoding pixels.
+ */
+function unitScale(track: Track, project: AvatarProject): { x: number; y: number } {
+  if (track.unit !== '%') return { x: 1, y: 1 }
+  if (track.target === 'pupils') return { x: project.eyes.size / 100, y: project.eyes.size / 100 }
+  return { x: project.body.width / 100, y: project.body.height / 100 }
+}
+
+function transformValue(kf: TransformKeyframe, ref: { x: number; y: number }): string {
+  const tx = (kf.tx ?? 0) * ref.x
+  const ty = (kf.ty ?? 0) * ref.y
+  return `translate(${px(tx)}, ${px(ty)}) rotate(${deg(kf.r ?? 0)}) scale(${scale(kf.sx ?? 1)}, ${scale(kf.sy ?? 1)})`
 }
 
 function iterationCount(settings: ExpressionSettings): string {
@@ -44,6 +60,7 @@ const ANIMATED_SELECTORS = [
   '.avatar-pupil',
   '.avatar-mouth-anim',
   '.avatar-mouth',
+  '.avatar-prop',
 ]
 
 /**
@@ -96,10 +113,20 @@ export function expressionCss(
   const iters = iterationCount(settings)
   const lines: string[] = []
 
+  lines.push(`${scope} {\n  --avatar-intensity: ${f(settings.intensity)};\n}`)
+  if (def.ownsEyes) {
+    // The expression drives the eyelids itself; suspend the idle blink.
+    lines.push(`${scope} .avatar-eye-blink {\n  animation: none;\n}`)
+  }
+
   for (const track of def.tracks) {
     const animName = `${ns}-${def.name}-${track.target}`
+    const ref = unitScale(track, project)
     const frames = track.keyframes
-      .map((kf) => `  ${f(kf.o)}% { transform: ${transformValue(kf, settings.intensity)}; }`)
+      .map((kf) => {
+        const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
+        return `  ${f(kf.o)}% { transform: ${transformValue(kf, ref)};${ease} }`
+      })
       .join('\n')
     lines.push(`@keyframes ${animName} {\n${frames}\n}`)
     const origin = track.origin ? `\n  transform-origin: ${track.origin};` : ''
@@ -109,13 +136,71 @@ export function expressionCss(
     )
   }
 
+  for (const prop of def.props ?? []) {
+    const animName = `${ns}-${def.name}-prop-${prop.id}`
+    const ref = { x: project.body.width / 100, y: project.body.height / 100 }
+    // Props below their minIntensity stay invisible; above it they ramp in —
+    // higher intensity shows more (and, via the transform calc, bigger) props.
+    const m = prop.minIntensity ?? 0
+    const ramp = m > 0 ? `calc((var(--avatar-intensity, 1) - ${f(m)}) / ${f(1 - m)})` : I
+    const frames = prop.keyframes
+      .map((kf) => {
+        const parts = [`transform: ${transformValue(kf, ref)};`]
+        if (kf.opacity !== undefined) {
+          parts.push(kf.opacity === 0 ? 'opacity: 0;' : `opacity: calc(${f(kf.opacity)} * ${ramp});`)
+        }
+        if (kf.ease) parts.push(`animation-timing-function: ${kf.ease};`)
+        return `  ${f(kf.o)}% { ${parts.join(' ')} }`
+      })
+      .join('\n')
+    lines.push(`@keyframes ${animName} {\n${frames}\n}`)
+    lines.push(
+      `${scope} .avatar-prop--${def.name}-${prop.id} {\n` +
+        `  animation: ${animName} ${duration}s ${prop.ease ?? 'ease-in-out'} ${iters} both;\n${PLAY_VARS}\n}`,
+    )
+  }
+
+  if (def.flush) {
+    // Blends the body colour toward the flush colour and back. Intensity is
+    // baked into the blend (colours can't calc()); returns to the user's
+    // colour at the loop ends, and the rules vanish with the expression class.
+    const amount = (a: number) => Math.max(0, Math.min(1, a * settings.intensity))
+    const flushFrames = (base: string, property: string) =>
+      def
+        .flush!.keyframes.map((kf) => {
+          const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
+          return `  ${f(kf.o)}% { ${property}: ${mixHex(base, def.flush!.color, amount(kf.amount))};${ease} }`
+        })
+        .join('\n')
+    if (project.body.fill.type === 'solid') {
+      const animName = `${ns}-${def.name}-flush`
+      lines.push(`@keyframes ${animName} {\n${flushFrames(project.body.fill.color, 'fill')}\n}`)
+      lines.push(
+        `${scope} .avatar-body > path {\n  animation: ${animName} ${duration}s ease-in-out ${iters} both;\n${PLAY_VARS}\n}`,
+      )
+    } else {
+      // Gradient bodies flush by animating each stop-color.
+      const stops = [project.body.fill.color, project.body.fill.color2 ?? darken(project.body.fill.color)]
+      stops.forEach((base, i) => {
+        const animName = `${ns}-${def.name}-flush${i}`
+        lines.push(`@keyframes ${animName} {\n${flushFrames(base, 'stop-color')}\n}`)
+        lines.push(
+          `${scope} linearGradient[id$="-body-grad"] stop:nth-child(${i + 1}) {\n` +
+            `  animation: ${animName} ${duration}s ease-in-out ${iters} both;\n${PLAY_VARS}\n}`,
+        )
+      })
+    }
+  }
+
   if (def.morph && MORPHABLE_MOUTHS.has(project.mouth.style)) {
     const base = project.mouth.style === 'flat' ? 0 : project.mouth.curvature
     const animName = `${ns}-${def.name}-mouthd`
+    // Path data can't use calc(), so intensity is baked into the morph frames.
     const frames = def.morph
       .map((kf) => {
         const curvature = Math.max(-1, Math.min(1, base + (kf.curvature - base) * settings.intensity))
-        return `  ${f(kf.o)}% { d: path("${mouthCurvePath(project.mouth, { curvature })}"); }`
+        const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
+        return `  ${f(kf.o)}% { d: path("${mouthCurvePath(project.mouth, { curvature })}");${ease} }`
       })
       .join('\n')
     lines.push(`@keyframes ${animName} {\n${frames}\n}`)

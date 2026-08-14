@@ -1,6 +1,7 @@
-import type { AvatarProject, Fill, Part, Stroke } from '../types/avatar'
-import { darken, shapePath } from './shapes'
+import type { AvatarProject, Body, Fill, Part, Stroke } from '../types/avatar'
+import { darken, heartPath, shapePath, starPath } from './shapes'
 import { catMouthPath, eyePath, mouthCurvePath, oMouthPath, openMouthPath, tonguePath } from './face'
+import { EXPRESSIONS, type ExpressionProp } from './expressions'
 
 /**
  * A plain-object SVG node tree. The editor renders it with Vue's `h()`,
@@ -137,6 +138,61 @@ function mouthNodes(project: AvatarProject): SvgNode {
   ])
 }
 
+function propShapeNodes(prop: ExpressionProp, size: number): SvgNode[] {
+  switch (prop.shape) {
+    case 'heart':
+      return [el('path', { d: heartPath(size, size), fill: prop.color })]
+    case 'star':
+      return [el('path', { d: starPath(size, size), fill: prop.color })]
+    case 'sparkle': {
+      const s = size / 2
+      const c = size * 0.09
+      return [
+        el('path', {
+          d: `M 0 ${-s} Q ${c} ${-c} ${s} 0 Q ${c} ${c} 0 ${s} Q ${-c} ${c} ${-s} 0 Q ${-c} ${-c} 0 ${-s} Z`,
+          fill: prop.color,
+        }),
+      ]
+    }
+    case 'puff':
+      return [
+        el('circle', { cx: -size * 0.32, cy: size * 0.12, r: size * 0.34, fill: prop.color }),
+        el('circle', { cx: size * 0.32, cy: size * 0.12, r: size * 0.34, fill: prop.color }),
+        el('circle', { cx: 0, cy: -size * 0.14, r: size * 0.44, fill: prop.color }),
+      ]
+    case 'zzz': {
+      const s = size / 2
+      return [
+        el('path', {
+          d: `M ${-s} ${-s} H ${s} L ${-s} ${s} H ${s}`,
+          fill: 'none',
+          stroke: prop.color,
+          'stroke-width': size * 0.24,
+          'stroke-linecap': 'round',
+          'stroke-linejoin': 'round',
+        }),
+      ]
+    }
+  }
+}
+
+/**
+ * Expression props (hearts, Zzz, sparkles…), anchored relative to the body's
+ * box so they fit any proportions. Hidden via the opacity attribute so they
+ * are invisible even without CSS; expression keyframes fade them in.
+ */
+function propNode(exprName: string, prop: ExpressionProp, body: Body): SvgNode {
+  // Geometric mean keeps props readable on very wide or very tall bodies.
+  const size = prop.size * Math.sqrt(body.width * body.height)
+  const ax = (prop.x * body.width) / 2
+  const ay = (prop.y * body.height) / 2
+  // Outer g holds the anchor translate; the inner animated g must not carry
+  // a transform attribute or the expression animation would override it.
+  return el('g', { transform: `translate(${ax.toFixed(1)} ${ay.toFixed(1)})` }, [
+    el('g', { class: `avatar-prop avatar-prop--${exprName}-${prop.id}`, opacity: 0 }, propShapeNodes(prop, size)),
+  ])
+}
+
 /** Bounds of the whole character in body-centred coordinates. */
 export function avatarBounds(project: AvatarProject): { minX: number; minY: number; maxX: number; maxY: number } {
   const b = project.body
@@ -160,9 +216,10 @@ export function avatarBounds(project: AvatarProject): { minX: number; minY: numb
 
 /**
  * Build the avatar's SVG node tree. `idPrefix` namespaces defs ids so several
- * instances can coexist in one document.
+ * instances can coexist in one document. `expressionNames` limits which
+ * expressions' props are embedded (default: all; pass [] for none).
  */
-export function buildAvatar(project: AvatarProject, idPrefix = 'avatar'): AvatarRender {
+export function buildAvatar(project: AvatarProject, idPrefix = 'avatar', expressionNames?: string[]): AvatarRender {
   const margin = 24
   const bounds = avatarBounds(project)
   const minX = bounds.minX - margin
@@ -203,6 +260,12 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar'): Avatar
     }),
   ])
 
+  const propNames = expressionNames ?? Object.keys(EXPRESSIONS)
+  const props = propNames.flatMap((name) => {
+    const def = EXPRESSIONS[name as keyof typeof EXPRESSIONS]
+    return (def?.props ?? []).map((prop) => propNode(name, prop, project.body))
+  })
+
   const root = el('g', { class: 'avatar-root' }, [
     el('g', { class: 'avatar-squash' }, [
       ...behind,
@@ -214,6 +277,7 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar'): Avatar
         mouthNodes(project),
       ]),
       ...overlay,
+      ...(props.length ? [el('g', { class: 'avatar-props' }, props)] : []),
     ]),
   ])
 

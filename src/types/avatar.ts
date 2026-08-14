@@ -127,7 +127,13 @@ export type ExpressionName = (typeof EXPRESSION_NAMES)[number]
 export function defaultExpressionSettings(): Record<string, ExpressionSettings> {
   const out: Record<string, ExpressionSettings> = {}
   for (const name of EXPRESSION_NAMES) {
-    out[name] = { speed: 1, intensity: 1, loop: 'infinite', include: name === 'idle' || name === 'happy' }
+    // Wink is a one-shot gesture; everything else loops.
+    out[name] = {
+      speed: 1,
+      intensity: 1,
+      loop: name === 'wink' ? 'once' : 'infinite',
+      include: name === 'idle' || name === 'happy',
+    }
   }
   out.idle.include = true
   return out
