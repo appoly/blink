@@ -69,15 +69,14 @@ function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string
   const eyes = project.eyes
   const sx = side === 'left' ? -eyes.spacing : eyes.spacing
   const pupilR = eyes.size * eyes.pupilSize
-  const pupilChildren: SvgNode[] = [el('circle', { r: pupilR, cy: eyes.size * 0.1, fill: eyes.pupilColor })]
+  const pupilChildren: SvgNode[] = [el('circle', { r: pupilR, fill: eyes.pupilColor })]
   if (eyes.highlight) {
     pupilChildren.push(
       el('circle', {
-        r: Math.max(1.2, pupilR * 0.32),
-        cx: -pupilR * 0.35,
-        cy: eyes.size * 0.1 - pupilR * 0.35,
+        r: Math.max(1.5, pupilR * 0.38),
+        cx: -pupilR * 0.32,
+        cy: -pupilR * 0.38,
         fill: '#ffffff',
-        opacity: 0.9,
       }),
     )
   }

@@ -6,6 +6,17 @@ import { generateComponent, generateSvgSnapshot } from '../src/lib/exporter'
 
 const project = defaultProject()
 project.name = 'BoxBuddy'
+project.body = {
+  kind: 'rect',
+  width: 180,
+  height: 160,
+  cornerRadius: 24,
+  blobVariant: 0,
+  fill: { type: 'gradient', color: '#d9a066' },
+  stroke: null,
+}
+project.eyes.offsetY = -18
+project.mouth.offsetY = 28
 
 // A smiling cardboard box: tape strip across the top, a wee label, blush marks.
 project.parts = [

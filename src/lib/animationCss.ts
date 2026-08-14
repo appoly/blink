@@ -72,8 +72,8 @@ export function baseAvatarCss(project: AvatarProject, scope: string, ns: string)
     lines.push(
       `@keyframes ${ns}-drift {\n` +
         `  0%, 100% { transform: translate(0px, 0px); }\n` +
-        `  30% { transform: translate(1.6px, 0.8px); }\n` +
-        `  65% { transform: translate(-1.4px, 0.5px); }\n` +
+        `  30% { transform: translate(1.1px, 0.5px); }\n` +
+        `  65% { transform: translate(-1px, 0.3px); }\n` +
         `}`,
     )
     lines.push(`${scope} .avatar-pupil {\n  animation: ${ns}-drift 9s ease-in-out infinite;\n${PLAY_VARS}\n}`)

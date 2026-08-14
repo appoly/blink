@@ -86,8 +86,9 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
       },
     ],
     morph: [
-      { o: 0, curvature: 1 },
-      { o: 100, curvature: 1 },
+      { o: 0, curvature: 0.85 },
+      { o: 55, curvature: 1 },
+      { o: 100, curvature: 0.85 },
     ],
   },
 
@@ -132,9 +133,20 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
           { o: 100, tx: 0 },
         ],
       },
+      {
+        target: 'mouth',
+        keyframes: [
+          { o: 0, sx: 1, sy: 1 },
+          { o: 30, sx: 0.8, sy: 0.9 },
+          { o: 70, sx: 0.8, sy: 0.9 },
+          { o: 100, sx: 1, sy: 1 },
+        ],
+      },
     ],
     morph: [
       { o: 0, curvature: 0.2 },
+      { o: 30, curvature: 0.4 },
+      { o: 70, curvature: 0.4 },
       { o: 100, curvature: 0.2 },
     ],
   },
@@ -171,6 +183,19 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
           { o: 0, sy: 0.55, r: -16 },
           { o: 50, sy: 0.5, r: -18 },
           { o: 100, sy: 0.55, r: -16 },
+        ],
+      },
+      {
+        // Gritted-teeth twitch in time with the shake.
+        target: 'mouth',
+        ease: 'linear',
+        keyframes: [
+          { o: 0, sx: 1 },
+          { o: 10, sx: 0.86 },
+          { o: 20, sx: 1 },
+          { o: 30, sx: 0.9 },
+          { o: 40, sx: 1 },
+          { o: 100, sx: 1 },
         ],
       },
     ],
@@ -218,9 +243,18 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
           { o: 100, tx: -3 },
         ],
       },
+      {
+        target: 'mouth',
+        keyframes: [
+          { o: 0, r: -5 },
+          { o: 50, r: 5 },
+          { o: 100, r: -5 },
+        ],
+      },
     ],
     morph: [
       { o: 0, curvature: -0.15 },
+      { o: 50, curvature: 0.2 },
       { o: 100, curvature: -0.15 },
     ],
   },
@@ -254,8 +288,13 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
     ],
+    // Bottom-lip quiver.
     morph: [
       { o: 0, curvature: -1 },
+      { o: 42, curvature: -0.78 },
+      { o: 50, curvature: -1 },
+      { o: 58, curvature: -0.78 },
+      { o: 66, curvature: -1 },
       { o: 100, curvature: -1 },
     ],
   },
@@ -297,9 +336,13 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
     ],
+    // Drops into a little gasp "o" then recovers.
     morph: [
-      { o: 0, curvature: -0.2 },
-      { o: 100, curvature: -0.2 },
+      { o: 0, curvature: -0.05 },
+      { o: 15, curvature: -0.4 },
+      { o: 55, curvature: -0.35 },
+      { o: 90, curvature: -0.05 },
+      { o: 100, curvature: -0.05 },
     ],
   },
 
@@ -331,9 +374,21 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
           { o: 100, ty: 2 },
         ],
       },
+      {
+        // Slow yawn.
+        target: 'mouth',
+        keyframes: [
+          { o: 0, sx: 1, sy: 1 },
+          { o: 40, sx: 1.25, sy: 1.4 },
+          { o: 60, sx: 1.25, sy: 1.4 },
+          { o: 100, sx: 1, sy: 1 },
+        ],
+      },
     ],
     morph: [
       { o: 0, curvature: 0.15 },
+      { o: 40, curvature: -0.25 },
+      { o: 60, curvature: -0.25 },
       { o: 100, curvature: 0.15 },
     ],
   },
@@ -370,10 +425,22 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
           { o: 100, sx: 1.05, sy: 1.05 },
         ],
       },
+      {
+        // Smile swells with the heartbeat pulse.
+        target: 'mouth',
+        keyframes: [
+          { o: 0, sx: 1, sy: 1 },
+          { o: 30, sx: 1.15, sy: 1.15 },
+          { o: 60, sx: 1, sy: 1 },
+          { o: 100, sx: 1, sy: 1 },
+        ],
+      },
     ],
     morph: [
-      { o: 0, curvature: 1 },
-      { o: 100, curvature: 1 },
+      { o: 0, curvature: 0.85 },
+      { o: 30, curvature: 1 },
+      { o: 60, curvature: 0.85 },
+      { o: 100, curvature: 0.85 },
     ],
   },
 
@@ -409,8 +476,10 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
     ],
+    // Opens and closes with each "ha".
     morph: [
       { o: 0, curvature: 1 },
+      { o: 50, curvature: 0.65 },
       { o: 100, curvature: 1 },
     ],
   },
@@ -441,10 +510,24 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
           { o: 100, r: 0 },
         ],
       },
+      {
+        // Cheeky smirk widens during the wink.
+        target: 'mouth',
+        keyframes: [
+          { o: 0, sx: 1, r: 0 },
+          { o: 28, sx: 1.1, r: -4 },
+          { o: 50, sx: 1.1, r: -4 },
+          { o: 62, sx: 1, r: 0 },
+          { o: 100, sx: 1, r: 0 },
+        ],
+      },
     ],
     morph: [
-      { o: 0, curvature: 0.9 },
-      { o: 100, curvature: 0.9 },
+      { o: 0, curvature: 0.7 },
+      { o: 28, curvature: 0.95 },
+      { o: 50, curvature: 0.95 },
+      { o: 62, curvature: 0.7 },
+      { o: 100, curvature: 0.7 },
     ],
   },
 
@@ -488,9 +571,11 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
     ],
+    // Wobbles between queasy frown and grimace.
     morph: [
-      { o: 0, curvature: -0.3 },
-      { o: 100, curvature: -0.3 },
+      { o: 0, curvature: -0.35 },
+      { o: 50, curvature: 0.25 },
+      { o: 100, curvature: -0.35 },
     ],
   },
 }

@@ -5,7 +5,7 @@
       <stop offset="100%" stop-color="#b28354" />
     </linearGradient>
     <clipPath id="snap-eye-clip">
-      <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" />
+      <path d="M -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0 Z" />
     </clipPath>
   </defs>
   <g class="avatar-root">
@@ -18,12 +18,12 @@
           <g class="avatar-eye-anim">
             <g class="avatar-eye-blink">
               <g transform="scale(1 1)">
-                <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
+                <path d="M -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0 Z" fill="#ffffff" />
                 <g clip-path="url(#snap-eye-clip)">
                   <g class="avatar-pupil-anim">
                     <g class="avatar-pupil">
-                      <circle r="7.2" cy="1.6" fill="#2b2b2b" />
-                      <circle r="2.3" cx="-2.52" cy="-0.92" fill="#ffffff" opacity="0.9" />
+                      <circle r="9.9" fill="#2b2b2b" />
+                      <circle r="3.76" cx="-3.17" cy="-3.76" fill="#ffffff" />
                     </g>
                   </g>
                 </g>
@@ -35,12 +35,12 @@
           <g class="avatar-eye-anim">
             <g class="avatar-eye-blink">
               <g transform="scale(1 1)">
-                <path d="M -16 0 a 16 16 0 1 0 32 0 a 16 16 0 1 0 -32 0 Z" fill="#ffffff" />
+                <path d="M -18 0 a 18 18 0 1 0 36 0 a 18 18 0 1 0 -36 0 Z" fill="#ffffff" />
                 <g clip-path="url(#snap-eye-clip)">
                   <g class="avatar-pupil-anim">
                     <g class="avatar-pupil">
-                      <circle r="7.2" cy="1.6" fill="#2b2b2b" />
-                      <circle r="2.3" cx="-2.52" cy="-0.92" fill="#ffffff" opacity="0.9" />
+                      <circle r="9.9" fill="#2b2b2b" />
+                      <circle r="3.76" cx="-3.17" cy="-3.76" fill="#ffffff" />
                     </g>
                   </g>
                 </g>
@@ -50,7 +50,7 @@
         </g>
         <g class="avatar-mouth-wrap" transform="translate(0 28)">
           <g class="avatar-mouth-anim">
-            <path class="avatar-mouth" d="M -22 0 Q 0 25.2 22 0" fill="none" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round" />
+            <path class="avatar-mouth" d="M -23 0 Q 0 25.2 23 0" fill="none" stroke="#2b2b2b" stroke-width="4.5" stroke-linecap="round" />
           </g>
         </g>
       </g>

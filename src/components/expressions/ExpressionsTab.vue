@@ -19,7 +19,7 @@ const settings = computed(() => project.value.expressions[current.value])
 const cycleDuration = computed(() => EXPRESSIONS[current.value].duration / settings.value.speed)
 
 // One stylesheet drives the big preview, another (all expressions at once)
-// drives the thumbnail grid — both from the same generator the export uses.
+// drives the thumbnail filmstrip — both from the same generator the export uses.
 useInjectedStyle(computed(() => avatarStylesheet(project.value, '.expr-stage', 'pv', [current.value])))
 useInjectedStyle(computed(() => avatarStylesheet(project.value, '.expr-thumb', 'th', [...EXPRESSION_NAMES])))
 
@@ -63,94 +63,83 @@ const commit = () => store.commit()
 
 <template>
   <div class="expressions-tab">
-    <section class="preview-pane">
+    <!-- The avatar is the hero: big, centre stage. -->
+    <section class="stage-area">
       <div :key="current + (editor.playing ? '-play' : '')" class="expr-stage" :class="`avatar-expr--${current}`" :style="stageVars">
         <AvatarSvg :project="project" id-prefix="pv" />
       </div>
-
-      <div class="transport">
-        <button @click="editor.playing = !editor.playing; editor.scrub = 0">
-          {{ editor.playing ? '⏸ Pause' : '▶ Play' }}
-        </button>
-        <input
-          class="scrub"
-          type="range"
-          min="0"
-          :max="cycleDuration.toFixed(2)"
-          step="0.01"
-          :value="editor.playing ? 0 : editor.scrub"
-          @input="onScrub"
-        />
-        <span class="time">{{ cycleDuration.toFixed(2) }}s</span>
-      </div>
-
-      <div class="tweaks">
-        <div class="section-title">{{ current }} settings</div>
-        <div class="field">
-          <label>Speed</label>
-          <div class="row">
-            <input type="range" min="0.25" max="3" step="0.05" :value="settings.speed" @input="settings.speed = num($event)" @change="commit" />
-            <span class="value">{{ settings.speed.toFixed(2) }}×</span>
-          </div>
-        </div>
-        <div class="field">
-          <label>Intensity</label>
-          <div class="row">
-            <input type="range" min="0" max="1.5" step="0.05" :value="settings.intensity" @input="settings.intensity = num($event)" @change="commit" />
-            <span class="value">{{ Math.round(settings.intensity * 100) }}%</span>
-          </div>
-        </div>
-        <div class="field">
-          <label>Loop</label>
-          <div class="row">
-            <select :value="loopChoice" @change="setLoop">
-              <option value="infinite">Loop forever</option>
-              <option value="once">Play once</option>
-              <option value="count">Play N times</option>
-            </select>
-            <input
-              v-if="loopChoice === 'count'"
-              type="number"
-              style="width: 52px"
-              min="1"
-              max="99"
-              :value="settings.loop"
-              @change="settings.loop = Math.max(1, num($event)); commit()"
-            />
-          </div>
-        </div>
-        <div class="field">
-          <label>Include in export</label>
-          <input
-            type="checkbox"
-            :checked="settings.include"
-            :disabled="current === 'idle'"
-            @change="settings.include = !settings.include; commit()"
-          />
-        </div>
-        <p v-if="current === 'idle'" class="hint">Idle (blink + pupil drift) is baked into every avatar and always exported.</p>
-      </div>
+      <div class="expr-name">{{ current }}</div>
     </section>
 
-    <section class="grid-pane">
-      <div class="section-title">Expression presets</div>
-      <div class="grid">
-        <button
-          v-for="name in EXPRESSION_NAMES"
-          :key="name"
-          class="card"
-          :class="{ active: name === current, excluded: !project.expressions[name].include }"
-          @click="pick(name)"
-        >
-          <div class="expr-thumb" :class="`avatar-expr--${name}`" :style="thumbVars(name)">
-            <AvatarSvg :project="project" :id-prefix="`th-${name}`" />
-          </div>
-          <span class="card-label">
-            {{ name }}
-            <span v-if="project.expressions[name].include" class="included" title="Included in export">●</span>
-          </span>
-        </button>
-      </div>
+    <section class="controls-bar">
+      <button class="play" @click="editor.playing = !editor.playing; editor.scrub = 0">
+        {{ editor.playing ? '⏸' : '▶' }}
+      </button>
+      <input
+        class="scrub"
+        type="range"
+        min="0"
+        :max="cycleDuration.toFixed(2)"
+        step="0.01"
+        :value="editor.playing ? 0 : editor.scrub"
+        @input="onScrub"
+      />
+      <span class="time">{{ cycleDuration.toFixed(2) }}s</span>
+
+      <span class="divider" />
+
+      <label>Speed</label>
+      <input type="range" class="tweak" min="0.25" max="3" step="0.05" :value="settings.speed" @input="settings.speed = num($event)" @change="commit" />
+      <span class="value">{{ settings.speed.toFixed(2) }}×</span>
+
+      <label>Intensity</label>
+      <input type="range" class="tweak" min="0" max="1.5" step="0.05" :value="settings.intensity" @input="settings.intensity = num($event)" @change="commit" />
+      <span class="value">{{ Math.round(settings.intensity * 100) }}%</span>
+
+      <label>Loop</label>
+      <select :value="loopChoice" @change="setLoop">
+        <option value="infinite">Forever</option>
+        <option value="once">Once</option>
+        <option value="count">N times</option>
+      </select>
+      <input
+        v-if="loopChoice === 'count'"
+        type="number"
+        style="width: 48px"
+        min="1"
+        max="99"
+        :value="settings.loop"
+        @change="settings.loop = Math.max(1, num($event)); commit()"
+      />
+
+      <label class="include" :title="current === 'idle' ? 'Idle is always exported' : 'Ship this expression in the exported component'">
+        <input
+          type="checkbox"
+          :checked="settings.include"
+          :disabled="current === 'idle'"
+          @change="settings.include = !settings.include; commit()"
+        />
+        Export
+      </label>
+    </section>
+
+    <!-- Preset filmstrip, thumbnailed with the user's own avatar. -->
+    <section class="filmstrip">
+      <button
+        v-for="name in EXPRESSION_NAMES"
+        :key="name"
+        class="card"
+        :class="{ active: name === current, excluded: !project.expressions[name].include }"
+        @click="pick(name)"
+      >
+        <div class="expr-thumb" :class="`avatar-expr--${name}`" :style="thumbVars(name)">
+          <AvatarSvg :project="project" :id-prefix="`th-${name}`" />
+        </div>
+        <span class="card-label">
+          {{ name }}
+          <span v-if="project.expressions[name].include" class="included" title="Included in export">●</span>
+        </span>
+      </button>
     </section>
   </div>
 </template>
@@ -158,77 +147,101 @@ const commit = () => store.commit()
 <style scoped>
 .expressions-tab {
   display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
-.preview-pane {
-  width: 380px;
-  flex: none;
-  border-right: 1px solid var(--border);
-  background: var(--panel);
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-  overflow-y: auto;
+.stage-area {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background-image: radial-gradient(circle, #2e313a 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .expr-stage {
-  height: 300px;
-  display: grid;
-  place-items: center;
-  background: radial-gradient(circle, #2e313a 1px, transparent 1px);
-  background-size: 24px 24px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
+  position: absolute;
+  inset: 28px;
 }
 
 .expr-stage :deep(svg) {
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
-.transport {
+.expr-name {
+  position: absolute;
+  top: 14px;
+  left: 18px;
+  text-transform: capitalize;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+}
+
+.controls-bar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 12px 0;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.play {
+  width: 36px;
 }
 
 .scrub {
   flex: 1;
+  min-width: 120px;
 }
 
-.time {
-  color: var(--text-dim);
-  font-variant-numeric: tabular-nums;
-}
-
+.time,
 .value {
   color: var(--text-dim);
-  width: 44px;
-  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
-.grid-pane {
-  flex: 1;
-  min-width: 0;
-  padding: 16px;
-  overflow-y: auto;
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 6px;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 12px;
+.tweak {
+  width: 90px;
+}
+
+.include {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text);
+  margin-left: 6px;
+}
+
+.filmstrip {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  overflow-x: auto;
+  flex: none;
 }
 
 .card {
-  padding: 10px;
+  flex: none;
+  width: 118px;
+  padding: 8px;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  align-items: stretch;
+  gap: 6px;
 }
 
 .card.active {
@@ -237,11 +250,11 @@ const commit = () => store.commit()
 }
 
 .card.excluded {
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .expr-thumb {
-  height: 110px;
+  height: 84px;
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -253,15 +266,11 @@ const commit = () => store.commit()
   justify-content: center;
   gap: 6px;
   align-items: center;
+  font-size: 12px;
 }
 
 .included {
   color: var(--accent);
-  font-size: 9px;
-}
-
-.hint {
-  color: var(--text-dim);
-  font-size: 11px;
+  font-size: 8px;
 }
 </style>
