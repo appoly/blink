@@ -38,7 +38,7 @@ function unitScale(track: Track, project: AvatarProject): { x: number; y: number
 }
 
 /** Blob squash/stretch is punchier than rigid shapes — dough, not cardboard. */
-const BLOB_SQUASH = 1.35
+const BLOB_SQUASH = 1.15
 
 function ampScale(v: number | undefined, blobSquash: boolean): number {
   const n = v ?? 1
@@ -58,6 +58,41 @@ function transformValue(
 
 type SampledTransform = { tx: number; ty: number; r: number; sx: number; sy: number }
 
+const NAMED_EASES: Record<string, [number, number, number, number]> = {
+  ease: [0.25, 0.1, 0.25, 1],
+  'ease-in': [0.42, 0, 1, 1],
+  'ease-out': [0, 0, 0.58, 1],
+  'ease-in-out': [0.42, 0, 0.58, 1],
+}
+
+/** Evaluate a CSS timing function at t (0–1). Output may overshoot [0,1]. */
+function easeValue(ease: string | undefined, t: number): number {
+  if (t <= 0) return 0
+  if (t >= 1) return 1
+  if (!ease || ease === 'linear') return t
+  let cp = NAMED_EASES[ease]
+  if (!cp) {
+    const m = ease.match(/cubic-bezier\(([^)]+)\)/)
+    const parts = m ? m[1].split(',').map(Number) : []
+    if (parts.length !== 4 || parts.some(Number.isNaN)) return t
+    cp = parts as [number, number, number, number]
+  }
+  const [x1, y1, x2, y2] = cp
+  const bez = (a: number, b: number, u: number) =>
+    3 * a * u * (1 - u) ** 2 + 3 * b * u * u * (1 - u) + u ** 3
+  // x(u) is monotonic for valid timing functions; bisect for u, then read y.
+  let lo = 0
+  let hi = 1
+  for (let i = 0; i < 24; i++) {
+    const mid = (lo + hi) / 2
+    if (bez(x1, x2, mid) < t) lo = mid
+    else hi = mid
+  }
+  const u = (lo + hi) / 2
+  return bez(y1, y2, u)
+}
+
+/** Sample a track at offset o, following each segment's timing function. */
 function sampleTrack(track: Track | undefined, o: number): SampledTransform {
   const rest = { tx: 0, ty: 0, r: 0, sx: 1, sy: 1 }
   if (!track?.keyframes.length) return rest
@@ -76,52 +111,77 @@ function sampleTrack(track: Track | undefined, o: number): SampledTransform {
       const b = at(kfs[i + 1])
       const span = kfs[i + 1].o - kfs[i].o
       const t = span <= 0 ? 1 : (o - kfs[i].o) / span
+      const e = easeValue(kfs[i].ease ?? track.ease ?? 'ease-in-out', t)
       return {
-        tx: a.tx + (b.tx - a.tx) * t,
-        ty: a.ty + (b.ty - a.ty) * t,
-        r: a.r + (b.r - a.r) * t,
-        sx: a.sx + (b.sx - a.sx) * t,
-        sy: a.sy + (b.sy - a.sy) * t,
+        tx: a.tx + (b.tx - a.tx) * e,
+        ty: a.ty + (b.ty - a.ty) * e,
+        r: a.r + (b.r - a.r) * e,
+        sx: a.sx + (b.sx - a.sx) * e,
+        sy: a.sy + (b.sy - a.sy) * e,
       }
     }
   }
   return at(kfs[kfs.length - 1])
 }
 
+/**
+ * Outline deform at offset o, driven entirely by the animation's own motion:
+ * the ripple amplitude follows the pose's rate of change, so the jelly
+ * wobbles while the body moves and settles to stillness through holds and
+ * idle — no free-running motion of its own.
+ */
 function blobDeformAt(def: ExpressionDef, o: number, intensity: number): BlobDeform {
-  const squash = sampleTrack(
-    def.tracks.find((t) => t.target === 'squash'),
-    o,
-  )
-  const root = sampleTrack(
-    def.tracks.find((t) => t.target === 'root'),
-    o,
-  )
-  const phase = (o / 100) * Math.PI * 2
+  const squashTrack = def.tracks.find((t) => t.target === 'squash')
+  const rootTrack = def.tracks.find((t) => t.target === 'root')
+  const squash = sampleTrack(squashTrack, o)
+  const root = sampleTrack(rootTrack, o)
+
+  const D = 1.5
+  const before = { s: sampleTrack(squashTrack, o - D), r: sampleTrack(rootTrack, o - D) }
+  const after = { s: sampleTrack(squashTrack, o + D), r: sampleTrack(rootTrack, o + D) }
+  const velocity =
+    Math.abs(after.s.sy - before.s.sy) +
+    Math.abs(after.s.sx - before.s.sx) +
+    Math.abs(after.s.tx - before.s.tx + (after.r.tx - before.r.tx)) * 0.02 +
+    Math.abs(after.s.r - before.s.r + (after.r.r - before.r.r)) * 0.015
+
   return {
     squash: 1 + (squash.sy - 1) * intensity,
-    slosh: ((root.r + squash.r) * 0.012 + Math.sin(phase) * 0.06) * intensity,
+    slosh: (root.r + squash.r) * 0.012 * intensity,
     wobble: o / 100,
-    wobbleAmp: 0.045 * intensity,
+    wobbleAmp: Math.min(0.04, velocity * 1.2) * intensity,
   }
 }
 
+/**
+ * Blob outline keyframes aligned 1:1 with the squash/root keyframe offsets,
+ * each segment carrying the same timing function as the transform it mirrors
+ * — sampling at other offsets would cut the beziers mid-flight and make the
+ * outline fight the (eased) squash transform.
+ */
 function blobMorphKeyframes(project: AvatarProject, def: ExpressionDef, intensity: number): string {
-  const offsets = new Set<number>([0, 16, 33, 50, 66, 83, 100])
-  for (const track of def.tracks) {
-    if (track.target === 'squash' || track.target === 'root') {
-      for (const kf of track.keyframes) offsets.add(kf.o)
-    }
-  }
   const squashTrack = def.tracks.find((t) => t.target === 'squash')
+  const rootTrack = def.tracks.find((t) => t.target === 'root')
+  const offsets = new Set<number>([0, 100])
+  for (const track of [squashTrack, rootTrack]) {
+    for (const kf of track?.keyframes ?? []) offsets.add(kf.o)
+  }
+  const easeAt = (o: number): string => {
+    // Ease of the segment starting at o: an exact squash keyframe wins, then
+    // an exact root keyframe, then the squash segment containing o.
+    for (const track of [squashTrack, rootTrack]) {
+      const kf = track?.keyframes.find((k) => k.o === o)
+      if (kf) return kf.ease ?? track!.ease ?? 'ease-in-out'
+    }
+    const seg = [...(squashTrack?.keyframes ?? [])].reverse().find((k) => k.o < o)
+    return seg?.ease ?? squashTrack?.ease ?? 'ease-in-out'
+  }
   const { width, height, blobVariant } = project.body
   return [...offsets]
     .sort((a, b) => a - b)
     .map((o) => {
       const d = blobPath(width, height, blobVariant, blobDeformAt(def, o, intensity))
-      const matched = squashTrack?.keyframes.find((kf) => Math.abs(kf.o - o) < 0.05)
-      const ease = matched?.ease ? ` animation-timing-function: ${matched.ease};` : ''
-      return `  ${f(o)}% { d: path("${d}");${ease} }`
+      return `  ${f(o)}% { d: path("${d}"); animation-timing-function: ${easeAt(o)}; }`
     })
     .join('\n')
 }
