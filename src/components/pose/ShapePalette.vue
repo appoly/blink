@@ -36,7 +36,7 @@ function addShape(kind: PartKind) {
     >
       <svg viewBox="-14 -14 28 28">
         <path
-          :d="shapePath(shape.kind, shape.kind === 'strip' || shape.kind === 'arc' ? 24 : shape.kind === 'lobe' ? 14 : 20, shape.kind === 'strip' ? 8 : shape.kind === 'lobe' ? 22 : shape.kind === 'arc' ? 7 : 20, 4, shape.kind === 'blob' ? 1 : 0, null, shape.kind === 'lobe' ? 0.55 : 0, 0.6)"
+          :d="shapePath(shape.kind, shape.kind === 'strip' || shape.kind === 'arc' ? 24 : 20, shape.kind === 'strip' ? 8 : shape.kind === 'arc' ? 7 : 20, 4, shape.kind === 'blob' ? 1 : 0, null, 0, 0.6)"
           fill="currentColor"
         />
       </svg>
@@ -48,10 +48,11 @@ function addShape(kind: PartKind) {
 .palette {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 12px 16px;
   background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 
 .hint {
@@ -60,9 +61,9 @@ function addShape(kind: PartKind) {
 }
 
 .shape {
-  width: 34px;
-  height: 30px;
-  padding: 3px;
+  width: 44px;
+  height: 40px;
+  padding: 5px;
   color: var(--text-dim);
   display: grid;
   place-items: center;

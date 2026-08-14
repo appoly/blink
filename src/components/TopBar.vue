@@ -22,13 +22,6 @@ function rename(e: Event) {
       >●</span>
     </div>
 
-    <nav class="tabs">
-      <button :class="{ active: editor.tab === 'pose' }" @click="editor.tab = 'pose'">Pose</button>
-      <button :class="{ active: editor.tab === 'expressions' }" @click="editor.tab = 'expressions'">
-        Expressions
-      </button>
-    </nav>
-
     <div class="group">
       <button :disabled="!project.canUndo" title="Undo (⌘Z)" @click="project.undo()">↩</button>
       <button :disabled="!project.canRedo" title="Redo (⇧⌘Z)" @click="project.redo()">↪</button>
@@ -75,26 +68,6 @@ function rename(e: Event) {
 .dirty {
   color: var(--accent);
   font-size: 10px;
-}
-
-.tabs {
-  display: flex;
-  gap: 4px;
-  background: var(--panel-2);
-  border-radius: 8px;
-  padding: 3px;
-}
-
-.tabs button {
-  border: none;
-  background: transparent;
-  padding: 5px 16px;
-}
-
-.tabs button.active {
-  background: var(--accent-soft);
-  color: var(--accent);
-  border-radius: 6px;
 }
 
 .sep {
