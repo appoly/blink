@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
 import { PALETTES } from '../../lib/palettes'
+import { bandOf, clonePart, setBand, type Band } from '../../lib/parts'
 import type { BodyKind, EyeStyle, Fill, MouthStyle, Part, Stroke } from '../../types/avatar'
 
 const editor = useEditorStore()
@@ -31,6 +32,30 @@ function toggleStroke(target: { stroke: Stroke | null }) {
 function deletePart(part: Part) {
   store.project.parts = store.project.parts.filter((p) => p.id !== part.id)
   editor.select(null)
+  commit()
+}
+
+function duplicatePart(part: Part) {
+  const copy = clonePart(part, project.value)
+  store.project.parts.splice(store.project.parts.indexOf(part) + 1, 0, copy)
+  editor.select({ kind: 'part', id: copy.id })
+  commit()
+}
+
+function setLayer(part: Part, e: Event) {
+  setBand(part, (e.target as HTMLSelectElement).value as Band)
+  commit()
+}
+
+function togglePerCorner(part: Part) {
+  const r = part.cornerRadius
+  part.corners = part.corners ? null : [r, r, r, r]
+  commit()
+}
+
+function setCorner(part: Part, index: number, e: Event) {
+  if (!part.corners) return
+  part.corners[index] = Math.max(0, num(e))
   commit()
 }
 
@@ -226,10 +251,33 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
         <label>Rotation</label>
         <input type="range" min="-180" max="180" :value="selectedPart.rotation" @input="selectedPart!.rotation = num($event)" @change="commit" />
       </div>
-      <div v-if="selectedPart.kind === 'rect' || selectedPart.kind === 'strip'" class="field">
-        <label>Corner radius</label>
-        <input type="range" min="0" max="40" :value="selectedPart.cornerRadius" @input="selectedPart!.cornerRadius = num($event)" @change="commit" />
-      </div>
+      <template v-if="selectedPart.kind === 'rect' || selectedPart.kind === 'strip'">
+        <div v-if="!selectedPart.corners" class="field">
+          <label>Corner radius</label>
+          <div class="row">
+            <input type="range" min="0" max="60" :value="selectedPart.cornerRadius" @input="selectedPart!.cornerRadius = num($event)" @change="commit" />
+            <input type="number" style="width: 48px" min="0" :value="selectedPart.cornerRadius" @change="selectedPart!.cornerRadius = Math.max(0, num($event)); commit()" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Per-corner</label>
+          <input type="checkbox" :checked="!!selectedPart.corners" @change="togglePerCorner(selectedPart!)" />
+        </div>
+        <div v-if="selectedPart.corners" class="field">
+          <label>TL TR BR BL</label>
+          <div class="row">
+            <input
+              v-for="(corner, i) in selectedPart.corners"
+              :key="i"
+              type="number"
+              style="width: 44px"
+              min="0"
+              :value="corner"
+              @change="setCorner(selectedPart!, i, $event)"
+            />
+          </div>
+        </div>
+      </template>
       <div class="field">
         <label>Opacity</label>
         <input type="range" min="0" max="1" step="0.05" :value="selectedPart.opacity" @input="selectedPart!.opacity = num($event)" @change="commit" />
@@ -259,11 +307,18 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
         <input type="checkbox" :checked="selectedPart.mirror" @change="selectedPart!.mirror = !selectedPart!.mirror; commit()" />
       </div>
       <div class="field">
-        <label>Behind body</label>
-        <input type="checkbox" :checked="selectedPart.behindBody" @change="selectedPart!.behindBody = !selectedPart!.behindBody; commit()" />
+        <label>Layer</label>
+        <select :value="bandOf(selectedPart)" @change="setLayer(selectedPart!, $event)">
+          <option value="back">Behind body</option>
+          <option value="mid">Above body</option>
+          <option value="top">Above face</option>
+        </select>
       </div>
-      <button class="danger" @click="deletePart(selectedPart!)">Delete shape</button>
-      <p class="hint">Drag to move · handles resize (⇧ keeps ratio, ⌥ from centre) · arrows nudge (⇧ = 10px)</p>
+      <div class="row" style="gap: 8px; margin-top: 10px">
+        <button @click="duplicatePart(selectedPart!)">Duplicate (⌘D)</button>
+        <button class="danger" @click="deletePart(selectedPart!)">Delete</button>
+      </div>
+      <p class="hint">Drag to move · handles resize (⇧ keeps ratio, ⌥ from centre) · arrows nudge (⇧ = 10px) · ⌘C/⌘V copy &amp; paste</p>
     </template>
 
     <p v-else class="hint">Select the body, eyes, mouth or a shape to edit its properties. Drag shapes in from the palette above the canvas.</p>
@@ -293,7 +348,6 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
 }
 
 .danger {
-  margin-top: 10px;
   color: var(--danger);
   border-color: var(--danger);
   background: transparent;

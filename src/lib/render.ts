@@ -57,7 +57,7 @@ function partNode(part: Part, gradientId: string | null, mirrored = false): SvgN
   if (mirrored) transforms.push('scale(-1 1)')
   return el('g', { class: 'avatar-part', 'data-part-id': mirrored ? `${part.id}--mirror` : part.id, transform: transforms.join(' ') }, [
     el('path', {
-      d: shapePath(part.kind, part.width, part.height, part.cornerRadius),
+      d: shapePath(part.kind, part.width, part.height, part.cornerRadius, 0, part.corners),
       ...fillAttrs(part.fill, gradientId),
       ...strokeAttrs(part.stroke),
       ...(part.opacity < 1 ? { opacity: part.opacity } : {}),
@@ -68,14 +68,17 @@ function partNode(part: Part, gradientId: string | null, mirrored = false): SvgN
 function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string): SvgNode {
   const eyes = project.eyes
   const sx = side === 'left' ? -eyes.spacing : eyes.spacing
-  const pupilR = eyes.size * eyes.pupilSize
+  // Horizontal half-width of each eye style, as a fraction of eyes.size —
+  // pupils are clamped to it so they never get clipped flat at the sides.
+  const EYE_RX: Record<string, number> = { round: 1, oval: 0.72, halfmoon: 1, bean: 0.85 }
+  const pupilR = Math.min(eyes.size * eyes.pupilSize, eyes.size * EYE_RX[eyes.style] * 0.82)
   const pupilChildren: SvgNode[] = [el('circle', { r: pupilR, fill: eyes.pupilColor })]
   if (eyes.highlight) {
     pupilChildren.push(
       el('circle', {
-        r: Math.max(1.5, pupilR * 0.38),
+        r: Math.max(1.2, pupilR * 0.28),
         cx: -pupilR * 0.32,
-        cy: -pupilR * 0.38,
+        cy: -pupilR * 0.4,
         fill: '#ffffff',
       }),
     )
@@ -187,8 +190,10 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar'): Avatar
   const clipId = `${idPrefix}-eye-clip`
   defs.push(el('clipPath', { id: clipId }, [el('path', { d: eyePath(project.eyes) })]))
 
+  // Three z-bands: behind body → above body (below face) → above face.
   const behind = partNodes(project.parts.filter((p) => p.behindBody))
-  const front = partNodes(project.parts.filter((p) => !p.behindBody))
+  const mid = partNodes(project.parts.filter((p) => !p.behindBody && !p.aboveFace))
+  const overlay = partNodes(project.parts.filter((p) => !p.behindBody && p.aboveFace))
 
   const body = el('g', { class: 'avatar-body' }, [
     el('path', {
@@ -202,12 +207,13 @@ export function buildAvatar(project: AvatarProject, idPrefix = 'avatar'): Avatar
     el('g', { class: 'avatar-squash' }, [
       ...behind,
       body,
+      ...mid,
       el('g', { class: 'avatar-face' }, [
         eyeNodes(project, 'left', clipId),
         eyeNodes(project, 'right', clipId),
         mouthNodes(project),
       ]),
-      ...front,
+      ...overlay,
     ]),
   ])
 

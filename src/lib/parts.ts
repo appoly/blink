@@ -29,7 +29,8 @@ export function createPart(kind: PartKind, x: number, y: number): Part {
     width: isStrip ? 120 : 40,
     height: isStrip ? 14 : 40,
     rotation: 0,
-    cornerRadius: kind === 'rect' ? 6 : 0,
+    cornerRadius: kind === 'rect' ? 6 : kind === 'strip' ? 4 : 0,
+    corners: null,
     fill: { type: 'solid', color: '#f2d5b3' },
     stroke: null,
     opacity: 1,
@@ -37,7 +38,29 @@ export function createPart(kind: PartKind, x: number, y: number): Part {
     locked: false,
     mirror: false,
     behindBody: false,
+    aboveFace: false,
   }
+}
+
+/** Deep-copy a part with a fresh id, offset slightly so the copy is visible. */
+export function clonePart(source: Part, project: AvatarProject, offset = 12): Part {
+  const copy: Part = JSON.parse(JSON.stringify(source))
+  copy.id = newId()
+  copy.name = `${source.name} copy`
+  const pos = clampPartPosition(project, source.x + offset, source.y + offset)
+  copy.x = pos.x
+  copy.y = pos.y
+  return copy
+}
+
+/** Z-band a part renders in: behind the body, above it, or above the face. */
+export type Band = 'back' | 'mid' | 'top'
+
+export const bandOf = (p: Part): Band => (p.behindBody ? 'back' : p.aboveFace ? 'top' : 'mid')
+
+export function setBand(p: Part, band: Band) {
+  p.behindBody = band === 'back'
+  p.aboveFace = band === 'top'
 }
 
 /** Margin outside the body a part's centre may reach — keeps the character coherent. */

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { ExpressionName } from '../types/avatar'
+import type { ExpressionName, Part } from '../types/avatar'
 
 /** What is currently selected on the canvas / in the layer list. */
 export type Selection = { kind: 'body' } | { kind: 'eyes' } | { kind: 'mouth' } | { kind: 'part'; id: string } | null
@@ -12,6 +12,8 @@ export const useEditorStore = defineStore('editor', {
     panX: 0,
     panY: 0,
     exportOpen: false,
+    /** Session clipboard for copy/paste of shapes. */
+    clipboard: null as Part | null,
     // Expressions tab
     currentExpression: 'idle' as ExpressionName,
     playing: true,

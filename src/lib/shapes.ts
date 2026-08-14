@@ -5,25 +5,32 @@ import type { PartKind } from '../types/avatar'
 
 const f = (n: number) => Number(n.toFixed(2))
 
-export function roundedRectPath(w: number, h: number, r: number): string {
-  const rr = Math.min(r, w / 2, h / 2)
+export type CornerRadii = [number, number, number, number] // tl, tr, br, bl
+
+export function roundedRectPath(w: number, h: number, r: number | CornerRadii): string {
+  const clamp = (v: number) => Math.max(0, Math.min(v, w / 2, h / 2))
+  const [tl, tr, br, bl] = (Array.isArray(r) ? r : [r, r, r, r]).map(clamp)
   const x = -w / 2
   const y = -h / 2
-  if (rr <= 0) {
+  if (tl + tr + br + bl <= 0) {
     return `M ${f(x)} ${f(y)} h ${f(w)} v ${f(h)} h ${f(-w)} Z`
   }
+  const arc = (radius: number, dx: number, dy: number) =>
+    radius > 0 ? `a ${f(radius)} ${f(radius)} 0 0 1 ${f(dx * radius)} ${f(dy * radius)}` : ''
   return [
-    `M ${f(x + rr)} ${f(y)}`,
-    `h ${f(w - 2 * rr)}`,
-    `a ${f(rr)} ${f(rr)} 0 0 1 ${f(rr)} ${f(rr)}`,
-    `v ${f(h - 2 * rr)}`,
-    `a ${f(rr)} ${f(rr)} 0 0 1 ${f(-rr)} ${f(rr)}`,
-    `h ${f(-(w - 2 * rr))}`,
-    `a ${f(rr)} ${f(rr)} 0 0 1 ${f(-rr)} ${f(-rr)}`,
-    `v ${f(-(h - 2 * rr))}`,
-    `a ${f(rr)} ${f(rr)} 0 0 1 ${f(rr)} ${f(-rr)}`,
+    `M ${f(x + tl)} ${f(y)}`,
+    `h ${f(w - tl - tr)}`,
+    arc(tr, 1, 1),
+    `v ${f(h - tr - br)}`,
+    arc(br, -1, 1),
+    `h ${f(-(w - br - bl))}`,
+    arc(bl, -1, -1),
+    `v ${f(-(h - bl - tl))}`,
+    arc(tl, 1, -1),
     'Z',
-  ].join(' ')
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 export function ellipsePath(w: number, h: number): string {
@@ -103,14 +110,18 @@ export function blobPath(w: number, h: number, variant: number): string {
   return d + ' Z'
 }
 
-export function stripPath(w: number, h: number): string {
-  return roundedRectPath(w, h, Math.min(h / 4, 4))
-}
-
-export function shapePath(kind: PartKind, w: number, h: number, cornerRadius: number, blobVariant = 0): string {
+export function shapePath(
+  kind: PartKind,
+  w: number,
+  h: number,
+  cornerRadius: number,
+  blobVariant = 0,
+  corners?: CornerRadii | null,
+): string {
   switch (kind) {
     case 'rect':
-      return roundedRectPath(w, h, cornerRadius)
+    case 'strip':
+      return roundedRectPath(w, h, corners ?? cornerRadius)
     case 'circle':
     case 'ellipse':
       return ellipsePath(w, h)
@@ -126,8 +137,6 @@ export function shapePath(kind: PartKind, w: number, h: number, cornerRadius: nu
       return starPath(w, h)
     case 'heart':
       return heartPath(w, h)
-    case 'strip':
-      return stripPath(w, h)
   }
 }
 

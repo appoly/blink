@@ -63,6 +63,18 @@ function onAnimationEnd(event) {
         <g class="avatar-body">
           <path d="M -66 -80 h 132 a 24 24 0 0 1 24 24 v 112 a 24 24 0 0 1 -24 24 h -132 a 24 24 0 0 1 -24 -24 v -112 a 24 24 0 0 1 24 -24 Z" fill="url(#avatar-body-grad)" />
         </g>
+        <g class="avatar-part" data-part-id="tape" transform="translate(0 -62)">
+          <path d="M -88 -7 h 176 a 2 2 0 0 1 2 2 v 10 a 2 2 0 0 1 -2 2 h -176 a 2 2 0 0 1 -2 -2 v -10 a 2 2 0 0 1 2 -2 Z" fill="#c98d52" />
+        </g>
+        <g class="avatar-part" data-part-id="label" transform="translate(52 52) rotate(-6)">
+          <path d="M -18 -14 h 36 a 4 4 0 0 1 4 4 v 20 a 4 4 0 0 1 -4 4 h -36 a 4 4 0 0 1 -4 -4 v -20 a 4 4 0 0 1 4 -4 Z" fill="#f2e6d4" stroke="#b07d4a" stroke-width="2" />
+        </g>
+        <g class="avatar-part" data-part-id="blush" transform="translate(-52 8)">
+          <path d="M -11 0 a 11 6 0 1 0 22 0 a 11 6 0 1 0 -22 0 Z" fill="#e8917c" opacity="0.65" />
+        </g>
+        <g class="avatar-part" data-part-id="blush--mirror" transform="translate(52 8) scale(-1 1)">
+          <path d="M -11 0 a 11 6 0 1 0 22 0 a 11 6 0 1 0 -22 0 Z" fill="#e8917c" opacity="0.65" />
+        </g>
         <g class="avatar-face">
           <g class="avatar-eye avatar-eye--left" transform="translate(-38 -18)">
             <g class="avatar-eye-anim">
@@ -73,7 +85,7 @@ function onAnimationEnd(event) {
                     <g class="avatar-pupil-anim">
                       <g class="avatar-pupil">
                         <circle r="8" fill="#2b2b2b" />
-                        <circle r="3.04" cx="-2.56" cy="-3.04" fill="#ffffff" />
+                        <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
                       </g>
                     </g>
                   </g>
@@ -90,7 +102,7 @@ function onAnimationEnd(event) {
                     <g class="avatar-pupil-anim">
                       <g class="avatar-pupil">
                         <circle r="8" fill="#2b2b2b" />
-                        <circle r="3.04" cx="-2.56" cy="-3.04" fill="#ffffff" />
+                        <circle r="2.24" cx="-2.56" cy="-3.2" fill="#ffffff" />
                       </g>
                     </g>
                   </g>
@@ -103,18 +115,6 @@ function onAnimationEnd(event) {
               <path class="avatar-mouth" d="M -22 0 Q 0 14 22 0" fill="none" stroke="#2b2b2b" stroke-width="3.5" stroke-linecap="round" />
             </g>
           </g>
-        </g>
-        <g class="avatar-part" data-part-id="tape" transform="translate(0 -62)">
-          <path d="M -86.5 -7 h 173 a 3.5 3.5 0 0 1 3.5 3.5 v 7 a 3.5 3.5 0 0 1 -3.5 3.5 h -173 a 3.5 3.5 0 0 1 -3.5 -3.5 v -7 a 3.5 3.5 0 0 1 3.5 -3.5 Z" fill="#c98d52" />
-        </g>
-        <g class="avatar-part" data-part-id="label" transform="translate(52 52) rotate(-6)">
-          <path d="M -18 -14 h 36 a 4 4 0 0 1 4 4 v 20 a 4 4 0 0 1 -4 4 h -36 a 4 4 0 0 1 -4 -4 v -20 a 4 4 0 0 1 4 -4 Z" fill="#f2e6d4" stroke="#b07d4a" stroke-width="2" />
-        </g>
-        <g class="avatar-part" data-part-id="blush" transform="translate(-52 8)">
-          <path d="M -11 0 a 11 6 0 1 0 22 0 a 11 6 0 1 0 -22 0 Z" fill="#e8917c" opacity="0.65" />
-        </g>
-        <g class="avatar-part" data-part-id="blush--mirror" transform="translate(52 8) scale(-1 1)">
-          <path d="M -11 0 a 11 6 0 1 0 22 0 a 11 6 0 1 0 -22 0 Z" fill="#e8917c" opacity="0.65" />
         </g>
       </g>
     </g>

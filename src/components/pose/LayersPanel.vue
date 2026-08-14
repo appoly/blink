@@ -2,6 +2,7 @@
 import { computed, nextTick, ref } from 'vue'
 import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
+import { bandOf, setBand, type Band } from '../../lib/parts'
 import type { Part } from '../../types/avatar'
 
 const editor = useEditorStore()
@@ -26,43 +27,43 @@ const rows = computed<Row[]>(() => {
     select: () => editor.select({ kind: 'part', id: part.id }),
     selected: sel?.kind === 'part' && sel.id === part.id,
   })
-  const front = store.project.parts.filter((p) => !p.behindBody)
-  const behind = store.project.parts.filter((p) => p.behindBody)
+  const inBand = (band: Band) => store.project.parts.filter((p) => bandOf(p) === band)
   return [
-    ...front.slice().reverse().map(partRow),
+    ...inBand('top').reverse().map(partRow),
     { key: 'mouth', label: 'Mouth', select: () => editor.select({ kind: 'mouth' }), selected: sel?.kind === 'mouth' },
     { key: 'eyes', label: 'Eyes', select: () => editor.select({ kind: 'eyes' }), selected: sel?.kind === 'eyes' },
+    ...inBand('mid').reverse().map(partRow),
     { key: 'body', label: 'Body', select: () => editor.select({ kind: 'body' }), selected: sel?.kind === 'body' },
-    ...behind.slice().reverse().map(partRow),
+    ...inBand('back').reverse().map(partRow),
   ]
 })
+
+const BAND_ORDER: Band[] = ['back', 'mid', 'top']
 
 /** Move a part one step toward the front (+1) or back (-1) in z-order. */
 function move(part: Part, dir: 1 | -1) {
   const parts = store.project.parts
-  const group = parts.filter((p) => p.behindBody === part.behindBody)
+  const band = bandOf(part)
+  const group = parts.filter((p) => bandOf(p) === band)
   const gi = group.indexOf(part)
-  const isLastTowardFace = dir === 1 ? gi === group.length - 1 : gi === 0
-  if (isLastTowardFace && ((dir === 1 && part.behindBody) || (dir === -1 && !part.behindBody))) {
-    // Cross the body/face boundary into the other group.
-    const idx = parts.indexOf(part)
-    parts.splice(idx, 1)
-    part.behindBody = !part.behindBody
+  const atBandEdge = dir === 1 ? gi === group.length - 1 : gi === 0
+
+  if (atBandEdge) {
+    // Cross into the neighbouring band (over the body or the face).
+    const nextBand = BAND_ORDER[BAND_ORDER.indexOf(band) + dir]
+    if (!nextBand) return
+    parts.splice(parts.indexOf(part), 1)
+    setBand(part, nextBand)
+    const nextGroupIndices = parts.flatMap((p, i) => (bandOf(p) === nextBand ? [i] : []))
     if (dir === 1) {
-      // Now frontmost group's backmost slot.
-      const firstFront = parts.findIndex((p) => !p.behindBody)
-      parts.splice(firstFront === -1 ? parts.length : firstFront, 0, part)
+      // Backmost slot of the band above: before its first member.
+      parts.splice(nextGroupIndices.length ? nextGroupIndices[0] : parts.length, 0, part)
     } else {
-      // Now behind group's frontmost slot (end of behind group).
-      let lastBehind = -1
-      parts.forEach((p, i) => {
-        if (p.behindBody) lastBehind = i
-      })
-      parts.splice(lastBehind + 1, 0, part)
+      // Frontmost slot of the band below: after its last member.
+      parts.splice(nextGroupIndices.length ? nextGroupIndices[nextGroupIndices.length - 1] + 1 : 0, 0, part)
     }
   } else {
     const neighbour = group[gi + dir]
-    if (!neighbour) return
     const a = parts.indexOf(part)
     const b = parts.indexOf(neighbour)
     parts[a] = neighbour

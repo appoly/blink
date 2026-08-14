@@ -42,6 +42,8 @@ export interface Part {
   height: number
   rotation: number
   cornerRadius: number
+  /** Per-corner radii [top-left, top-right, bottom-right, bottom-left]; overrides cornerRadius. */
+  corners?: [number, number, number, number] | null
   fill: Fill
   stroke: Stroke | null
   opacity: number
@@ -51,6 +53,8 @@ export interface Part {
   mirror: boolean
   /** Rendered behind the body layer when true. */
   behindBody: boolean
+  /** Rendered above the eyes/mouth when true (default: above body, below face). */
+  aboveFace?: boolean
 }
 
 export type EyeStyle = 'round' | 'oval' | 'halfmoon' | 'bean'

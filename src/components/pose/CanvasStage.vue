@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AvatarSvg from '../AvatarSvg.vue'
 import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
-import { clampPartPosition, createPart } from '../../lib/parts'
+import { clampPartPosition, clonePart, createPart } from '../../lib/parts'
 import { baseAvatarCss } from '../../lib/animationCss'
 import { useInjectedStyle } from '../../composables/useInjectedStyle'
 import type { Part, PartKind } from '../../types/avatar'
@@ -60,6 +60,24 @@ function onKey(e: KeyboardEvent) {
   }
   if (e.type !== 'keydown' || editor.tab !== 'pose') return
 
+  const mod = e.metaKey || e.ctrlKey
+  if (mod && e.key.toLowerCase() === 'd' && selectedPart.value) {
+    e.preventDefault()
+    pastePart(clonePart(selectedPart.value, project.value), selectedPart.value)
+    return
+  }
+  if (mod && e.key.toLowerCase() === 'c' && selectedPart.value) {
+    e.preventDefault()
+    editor.clipboard = JSON.parse(JSON.stringify(selectedPart.value))
+    return
+  }
+  if (mod && e.key.toLowerCase() === 'v' && editor.clipboard) {
+    e.preventDefault()
+    pastePart(clonePart(editor.clipboard, project.value))
+    return
+  }
+  if (mod) return
+
   if ((e.key === 'Delete' || e.key === 'Backspace') && selectedPart.value) {
     store.project.parts = store.project.parts.filter((p) => p.id !== selectedPart.value!.id)
     editor.select(null)
@@ -85,6 +103,15 @@ function onKey(e: KeyboardEvent) {
     selectedPart.value.y = pos.y
     store.commit()
   }
+}
+
+/** Insert a copied/duplicated part (after `after` if given) and select it. */
+function pastePart(copy: Part, after?: Part) {
+  const parts = store.project.parts
+  const index = after ? parts.indexOf(after) + 1 : parts.length
+  parts.splice(index, 0, copy)
+  editor.select({ kind: 'part', id: copy.id })
+  store.commit()
 }
 
 // ---- drag state machine -------------------------------------------------
