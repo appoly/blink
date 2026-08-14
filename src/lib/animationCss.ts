@@ -56,6 +56,10 @@ const ANIMATED_SELECTORS = [
   '.avatar-squash',
   '.avatar-eye-anim',
   '.avatar-eye-blink',
+  '.avatar-eye-open',
+  '.avatar-eye-closed',
+  '.avatar-eye-smile',
+  '.avatar-eyebrow',
   '.avatar-pupil-anim',
   '.avatar-pupil',
   '.avatar-mouth-anim',
@@ -124,8 +128,11 @@ export function expressionCss(
     const ref = unitScale(track, project)
     const frames = track.keyframes
       .map((kf) => {
+        // Track opacity (eye-pose cross-fades) is deliberately not intensity-
+        // scaled: half intensity must not mean half-transparent eyelids.
+        const opacity = kf.opacity !== undefined ? ` opacity: ${f(kf.opacity)};` : ''
         const ease = kf.ease ? ` animation-timing-function: ${kf.ease};` : ''
-        return `  ${f(kf.o)}% { transform: ${transformValue(kf, ref)};${ease} }`
+        return `  ${f(kf.o)}% { transform: ${transformValue(kf, ref)};${opacity}${ease} }`
       })
       .join('\n')
     lines.push(`@keyframes ${animName} {\n${frames}\n}`)

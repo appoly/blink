@@ -6,7 +6,26 @@ import type { ExpressionName } from '../types/avatar'
  * the editor preview, the expression-card thumbnails and the exported CSS.
  */
 
-export type TrackTarget = 'root' | 'squash' | 'eyes' | 'eyeL' | 'eyeR' | 'pupils' | 'mouth'
+export type TrackTarget =
+  | 'root'
+  | 'squash'
+  | 'eyes'
+  | 'eyeL'
+  | 'eyeR'
+  | 'eyeOpen'
+  | 'eyeLOpen'
+  | 'eyeROpen'
+  | 'eyeClosed'
+  | 'eyeLClosed'
+  | 'eyeRClosed'
+  | 'eyeSmile'
+  | 'eyeLSmile'
+  | 'eyeRSmile'
+  | 'brows'
+  | 'browL'
+  | 'browR'
+  | 'pupils'
+  | 'mouth'
 
 export interface TransformKeyframe {
   /** Offset in percent, 0–100. */
@@ -16,7 +35,10 @@ export interface TransformKeyframe {
   r?: number
   sx?: number
   sy?: number
-  /** 0–1 — props use it to fade in/out. Scaled by intensity. */
+  /**
+   * 0–1 — used for props (scaled by intensity) and eye-pose cross-fades
+   * (used raw, so lids stay solid at any intensity).
+   */
   opacity?: number
   /** Timing function from this keyframe to the next (overrides the track ease). */
   ease?: string
@@ -93,6 +115,18 @@ export const TARGET_SELECTORS: Record<TrackTarget, string> = {
   eyes: '.avatar-eye-anim',
   eyeL: '.avatar-eye--left .avatar-eye-anim',
   eyeR: '.avatar-eye--right .avatar-eye-anim',
+  eyeOpen: '.avatar-eye-open',
+  eyeLOpen: '.avatar-eye--left .avatar-eye-open',
+  eyeROpen: '.avatar-eye--right .avatar-eye-open',
+  eyeClosed: '.avatar-eye-closed',
+  eyeLClosed: '.avatar-eye--left .avatar-eye-closed',
+  eyeRClosed: '.avatar-eye--right .avatar-eye-closed',
+  eyeSmile: '.avatar-eye-smile',
+  eyeLSmile: '.avatar-eye--left .avatar-eye-smile',
+  eyeRSmile: '.avatar-eye--right .avatar-eye-smile',
+  brows: '.avatar-eyebrow',
+  browL: '.avatar-eye--left .avatar-eyebrow',
+  browR: '.avatar-eye--right .avatar-eyebrow',
   pupils: '.avatar-pupil-anim',
   mouth: '.avatar-mouth-anim',
 }
@@ -206,9 +240,9 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         unit: '%',
         keyframes: [
           { o: 0, r: 0, tx: 0, ease: SNAP_IN },
-          { o: 8, r: -1.5, tx: -0.5, ease: SPRING },
-          { o: 24, r: 8, tx: 2.5 },
-          { o: 72, r: 8, tx: 2.5, ease: SMOOTH },
+          { o: 8, r: -1.5, tx: -0.3, ease: SPRING },
+          { o: 24, r: 8, tx: 1.5 },
+          { o: 72, r: 8, tx: 1.5, ease: SMOOTH },
           { o: 90, r: 0, tx: 0 },
           { o: 100, r: 0, tx: 0 },
         ],
@@ -271,8 +305,8 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
     ],
   },
 
-  // Stomp down into a wide crouch, vibrate, hold the glare, release.
-  // Eye tops flatten inward like brows; mouth clenches into a sharp frown.
+  // Sharp stomp and a readable glare. The eyes remain large; dedicated brows
+  // carry the anger instead of crushing the eyeballs into tiny white slits.
   angry: {
     name: 'angry',
     duration: 1.5,
@@ -308,24 +342,48 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
       },
       {
         target: 'eyeL',
-        origin: GROUND,
+        origin: '50% 50%',
         keyframes: [
           { o: 0, sy: 1, r: 0, ease: SNAP_IN },
-          { o: 10, sy: 0.4, r: 12, ease: 'linear' },
-          { o: 70, sy: 0.4, r: 12, ease: SMOOTH },
+          { o: 10, sx: 1.04, sy: 0.84, r: 4, ease: SPRING },
+          { o: 70, sx: 1.04, sy: 0.84, r: 4, ease: SMOOTH },
           { o: 90, sy: 1, r: 0 },
           { o: 100, sy: 1, r: 0 },
         ],
       },
       {
         target: 'eyeR',
-        origin: GROUND,
+        origin: '50% 50%',
         keyframes: [
           { o: 0, sy: 1, r: 0, ease: SNAP_IN },
-          { o: 10, sy: 0.4, r: -12, ease: 'linear' },
-          { o: 70, sy: 0.4, r: -12, ease: SMOOTH },
+          { o: 10, sx: 1.04, sy: 0.84, r: -4, ease: SPRING },
+          { o: 70, sx: 1.04, sy: 0.84, r: -4, ease: SMOOTH },
           { o: 90, sy: 1, r: 0 },
           { o: 100, sy: 1, r: 0 },
+        ],
+      },
+      {
+        target: 'browL',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0, r: 0 },
+          { o: 8, opacity: 0, r: 0, ease: SPRING },
+          { o: 14, opacity: 1, r: 16 },
+          { o: 70, opacity: 1, r: 16 },
+          { o: 88, opacity: 0, r: 0 },
+          { o: 100, opacity: 0, r: 0 },
+        ],
+      },
+      {
+        target: 'browR',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0, r: 0 },
+          { o: 8, opacity: 0, r: 0, ease: SPRING },
+          { o: 14, opacity: 1, r: -16 },
+          { o: 70, opacity: 1, r: -16 },
+          { o: 88, opacity: 0, r: 0 },
+          { o: 100, opacity: 0, r: 0 },
         ],
       },
       {
@@ -433,10 +491,32 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ease: SMOOTH,
         keyframes: [
           { o: 0, sy: 1 },
-          { o: 22, sy: 0.62 },
+          { o: 22, sx: 0.94, sy: 0.78 },
           { o: 48, sy: 1.05 },
-          { o: 68, sy: 0.7 },
+          { o: 68, sx: 0.96, sy: 0.82 },
           { o: 100, sy: 1 },
+        ],
+      },
+      {
+        target: 'browL',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0, r: 0 },
+          { o: 18, opacity: 0.8, r: -8 },
+          { o: 48, opacity: 0.25, r: 5 },
+          { o: 68, opacity: 0.75, r: -6 },
+          { o: 100, opacity: 0, r: 0 },
+        ],
+      },
+      {
+        target: 'browR',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0, r: 0 },
+          { o: 18, opacity: 0.35, r: 7 },
+          { o: 48, opacity: 0.8, r: -5 },
+          { o: 68, opacity: 0.3, r: 8 },
+          { o: 100, opacity: 0, r: 0 },
         ],
       },
       {
@@ -492,13 +572,40 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
       },
       {
         target: 'eyes',
-        origin: '50% 0%',
         ease: SMOOTH,
         unit: '%',
         keyframes: [
-          { o: 0, sy: 0.55, ty: 1 },
-          { o: 50, sy: 0.5, ty: 1.2 },
-          { o: 100, sy: 0.55, ty: 1 },
+          { o: 0, ty: 1 },
+          { o: 50, ty: 1.2 },
+          { o: 100, ty: 1 },
+        ],
+      },
+      {
+        target: 'eyeOpen',
+        origin: '50% 0%',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, sy: 0.82 },
+          { o: 50, sy: 0.76 },
+          { o: 100, sy: 0.82 },
+        ],
+      },
+      {
+        target: 'browL',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0.65, r: -10, ty: 1 },
+          { o: 50, opacity: 0.8, r: -12, ty: 1.5 },
+          { o: 100, opacity: 0.65, r: -10, ty: 1 },
+        ],
+      },
+      {
+        target: 'browR',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0.65, r: 10, ty: 1 },
+          { o: 50, opacity: 0.8, r: 12, ty: 1.5 },
+          { o: 100, opacity: 0.65, r: 10, ty: 1 },
         ],
       },
       {
@@ -657,12 +764,12 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
     ],
   },
 
-  // Long pendulum sway with off-sync deep breathing. Heavy lids droop
-  // irregularly and almost-close twice per cycle. Owns the eyes (no blink).
+  // Long pendulum sway with two genuine slow blinks. Open eyes stay readable
+  // while drowsy; at each closure they cross-fade to a drawn eyelid line.
   sleepy: {
     name: 'sleepy',
     duration: 5.2,
-    thumbOffset: 60,
+    thumbOffset: 71,
     ownsEyes: true,
     tracks: [
       {
@@ -686,19 +793,37 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
-        target: 'eyes',
+        target: 'eyeOpen',
         origin: '50% 0%',
         ease: SMOOTH,
         keyframes: [
-          { o: 0, sy: 0.42 },
-          { o: 14, sy: 0.38 },
-          { o: 22, sy: 0.1 },
-          { o: 30, sy: 0.4 },
-          { o: 48, sy: 0.44 },
-          { o: 62, sy: 0.36 },
-          { o: 70, sy: 0.08 },
-          { o: 80, sy: 0.38 },
-          { o: 100, sy: 0.42 },
+          { o: 0, sy: 0.66, opacity: 1 },
+          { o: 14, sy: 0.58, opacity: 1 },
+          { o: 20, sy: 0.28, opacity: 0.2 },
+          { o: 23, sy: 0.2, opacity: 0 },
+          { o: 29, sy: 0.56, opacity: 1 },
+          { o: 48, sy: 0.7, opacity: 1 },
+          { o: 62, sy: 0.56, opacity: 1 },
+          { o: 68, sy: 0.26, opacity: 0.15 },
+          { o: 71, sy: 0.2, opacity: 0 },
+          { o: 79, sy: 0.58, opacity: 1 },
+          { o: 100, sy: 0.66, opacity: 1 },
+        ],
+      },
+      {
+        target: 'eyeClosed',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0 },
+          { o: 18, opacity: 0 },
+          { o: 22, opacity: 1 },
+          { o: 25, opacity: 1 },
+          { o: 30, opacity: 0 },
+          { o: 66, opacity: 0 },
+          { o: 70, opacity: 1 },
+          { o: 73, opacity: 1 },
+          { o: 80, opacity: 0 },
+          { o: 100, opacity: 0 },
         ],
       },
       {
@@ -781,7 +906,7 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
   },
 
   // Heartbeat: two quick soft beats then a rest, riding a gentle upward
-  // float. Eyes squash into happy arcs and pupils swell with each beat.
+  // float. Real curved smile-eyes replace the old flattened white ovals.
   love: {
     name: 'love',
     duration: 1.9,
@@ -803,15 +928,27 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
-        target: 'eyes',
-        origin: GROUND,
+        target: 'eyeOpen',
         ease: SMOOTH,
         keyframes: [
-          { o: 0, sy: 1 },
-          { o: 12, sy: 0.6 },
-          { o: 55, sy: 0.6 },
-          { o: 82, sy: 1 },
-          { o: 100, sy: 1 },
+          { o: 0, opacity: 1, sy: 1 },
+          { o: 10, opacity: 0.15, sy: 0.72 },
+          { o: 14, opacity: 0, sy: 0.65 },
+          { o: 58, opacity: 0, sy: 0.65 },
+          { o: 76, opacity: 1, sy: 1 },
+          { o: 100, opacity: 1, sy: 1 },
+        ],
+      },
+      {
+        target: 'eyeSmile',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0, sx: 0.9, sy: 0.9 },
+          { o: 10, opacity: 0.85, sx: 1.06, sy: 1.06, ease: SPRING },
+          { o: 14, opacity: 1, sx: 1, sy: 1 },
+          { o: 58, opacity: 1, sx: 1, sy: 1 },
+          { o: 76, opacity: 0, sx: 0.92, sy: 0.92 },
+          { o: 100, opacity: 0, sx: 0.92, sy: 0.92 },
         ],
       },
       {
@@ -903,7 +1040,7 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
   },
 
   // Rapid full-body shake with strong squash-stretch and a slight rock.
-  // Eyes squeezed shut, mouth wide open and bouncing off-beat from the body.
+  // Proper smile-eye strokes sell the laugh without leaving white slits.
   laughing: {
     name: 'laughing',
     duration: 0.55,
@@ -934,14 +1071,20 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ],
       },
       {
-        target: 'eyes',
-        origin: GROUND,
+        target: 'eyeOpen',
+        keyframes: [
+          { o: 0, opacity: 0 },
+          { o: 100, opacity: 0 },
+        ],
+      },
+      {
+        target: 'eyeSmile',
         ease: SMOOTH,
         unit: '%',
         keyframes: [
-          { o: 0, sy: 0.28, ty: 0 },
-          { o: 50, sy: 0.34, ty: -1 },
-          { o: 100, sy: 0.28, ty: 0 },
+          { o: 0, opacity: 1, sx: 1.04, sy: 1, ty: 0 },
+          { o: 50, opacity: 1, sx: 1.12, sy: 1.08, ty: -1 },
+          { o: 100, opacity: 1, sx: 1.04, sy: 1, ty: 0 },
         ],
       },
       {
@@ -972,16 +1115,29 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
     ownsEyes: true,
     tracks: [
       {
-        target: 'eyeR',
+        target: 'eyeROpen',
         ease: SMOOTH,
         keyframes: [
-          { o: 0, sy: 1 },
-          { o: 12, sy: 1.08, ease: SNAP_IN },
-          { o: 20, sy: 0.08 },
-          { o: 58, sy: 0.08, ease: SPRING },
-          { o: 70, sy: 1.08 },
-          { o: 82, sy: 1 },
-          { o: 100, sy: 1 },
+          { o: 0, sy: 1, opacity: 1 },
+          { o: 12, sy: 1.08, opacity: 1, ease: SNAP_IN },
+          { o: 18, sy: 0.3, opacity: 0.2 },
+          { o: 21, sy: 0.2, opacity: 0 },
+          { o: 58, sy: 0.2, opacity: 0, ease: SPRING },
+          { o: 68, sy: 1.08, opacity: 1 },
+          { o: 82, sy: 1, opacity: 1 },
+          { o: 100, sy: 1, opacity: 1 },
+        ],
+      },
+      {
+        target: 'eyeRClosed',
+        ease: SMOOTH,
+        keyframes: [
+          { o: 0, opacity: 0, sx: 0.9 },
+          { o: 17, opacity: 0, sx: 0.9, ease: SPRING },
+          { o: 21, opacity: 1, sx: 1.08 },
+          { o: 58, opacity: 1, sx: 1.08 },
+          { o: 68, opacity: 0, sx: 0.92 },
+          { o: 100, opacity: 0, sx: 0.92 },
         ],
       },
       {
@@ -1046,26 +1202,26 @@ export const EXPRESSIONS: Record<ExpressionName, ExpressionDef> = {
         ease: 'linear',
         unit: '%',
         keyframes: [
-          { o: 0, tx: 4.5, ty: 0, r: 9 },
-          { o: 12.5, tx: 3.2, ty: 1.6, r: 6.4 },
-          { o: 25, tx: 0, ty: 2.2, r: 0 },
-          { o: 37.5, tx: -3.2, ty: 1.6, r: -6.4 },
-          { o: 50, tx: -4.5, ty: 0, r: -9 },
-          { o: 62.5, tx: -3.2, ty: -1.6, r: -6.4 },
-          { o: 75, tx: 0, ty: -2.2, r: 0 },
-          { o: 87.5, tx: 3.2, ty: -1.6, r: 6.4 },
-          { o: 100, tx: 4.5, ty: 0, r: 9 },
+          { o: 0, tx: 2.5, ty: 0, r: 5 },
+          { o: 12.5, tx: 1.8, ty: 0.9, r: 3.5 },
+          { o: 25, tx: 0, ty: 1.3, r: 0 },
+          { o: 37.5, tx: -1.8, ty: 0.9, r: -3.5 },
+          { o: 50, tx: -2.5, ty: 0, r: -5 },
+          { o: 62.5, tx: -1.8, ty: -0.9, r: -3.5 },
+          { o: 75, tx: 0, ty: -1.3, r: 0 },
+          { o: 87.5, tx: 1.8, ty: -0.9, r: 3.5 },
+          { o: 100, tx: 2.5, ty: 0, r: 5 },
         ],
       },
       {
         target: 'eyes',
         ease: 'linear',
         keyframes: [
-          { o: 0, r: -18, sy: 0.8 },
-          { o: 25, r: 0, sy: 0.92 },
-          { o: 50, r: 18, sy: 0.8 },
-          { o: 75, r: 0, sy: 0.92 },
-          { o: 100, r: -18, sy: 0.8 },
+          { o: 0, r: -10, sy: 0.85 },
+          { o: 25, r: 0, sy: 0.85 },
+          { o: 50, r: 10, sy: 0.85 },
+          { o: 75, r: 0, sy: 0.85 },
+          { o: 100, r: -10, sy: 0.85 },
         ],
       },
       {

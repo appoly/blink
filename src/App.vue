@@ -6,9 +6,29 @@ import ExpressionsTab from './components/expressions/ExpressionsTab.vue'
 import ExportDialog from './components/ExportDialog.vue'
 import { useEditorStore } from './stores/editor'
 import { useProjectStore } from './stores/project'
+import { loadAutosave, saveAutosave } from './lib/autosave'
 
 const editor = useEditorStore()
 const project = useProjectStore()
+
+// Autosave the working project (debounced) and restore it on launch, so no
+// .avatar file juggling is needed just to keep your character around.
+let autosaveTimer: ReturnType<typeof setTimeout> | undefined
+project.$subscribe(() => {
+  clearTimeout(autosaveTimer)
+  autosaveTimer = setTimeout(() => {
+    saveAutosave(JSON.stringify(project.project)).catch((err) => console.warn('Autosave failed', err))
+  }, 600)
+})
+
+async function restoreAutosave() {
+  try {
+    const json = await loadAutosave()
+    if (json) project.loadFromJson(json, null)
+  } catch (err) {
+    console.warn('Could not restore autosave', err)
+  }
+}
 
 function isEditableTarget(e: KeyboardEvent): boolean {
   const t = e.target as HTMLElement | null
@@ -30,7 +50,10 @@ function onKeyDown(e: KeyboardEvent) {
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeyDown))
+onMounted(() => {
+  window.addEventListener('keydown', onKeyDown)
+  restoreAutosave()
+})
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeyDown))
 </script>
 

@@ -15,7 +15,11 @@ function rename(e: Event) {
   <header class="topbar">
     <div class="group">
       <input class="project-name" :value="project.project.name" spellcheck="false" @change="rename" />
-      <span v-if="project.dirty" class="dirty" title="Unsaved changes">●</span>
+      <span
+        v-if="project.dirty"
+        class="dirty"
+        title="Autosaved in the app — not yet written to a .avatar file"
+      >●</span>
     </div>
 
     <nav class="tabs">

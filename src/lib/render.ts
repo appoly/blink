@@ -72,7 +72,22 @@ function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string
   // Horizontal half-width of each eye style, as a fraction of eyes.size —
   // pupils are clamped to it so they never get clipped flat at the sides.
   const EYE_RX: Record<string, number> = { round: 1, oval: 0.72, halfmoon: 1, bean: 0.85 }
+  const eyeRx = eyes.size * EYE_RX[eyes.style]
   const pupilR = Math.min(eyes.size * eyes.pupilSize, eyes.size * EYE_RX[eyes.style] * 0.82)
+  const lidStroke = Math.max(2.4, eyes.size * 0.14)
+  const lidAttrs: Record<string, string | number> = {
+    fill: 'none',
+    stroke: eyes.pupilColor,
+    'stroke-width': lidStroke,
+    'stroke-linecap': 'round',
+    opacity: 0,
+  }
+  // Separate paths make a closed eye an actual expressive stroke instead of
+  // a vertically crushed white eyeball. The neutral lid is used for blinks,
+  // sleepy and wink; the raised arc is used by love and laughing.
+  const closedEyePath = `M ${-eyeRx * 0.86} 0 Q 0 ${eyes.size * 0.18} ${eyeRx * 0.86} 0`
+  const smileEyePath = `M ${-eyeRx * 0.86} ${eyes.size * 0.12} Q 0 ${-eyes.size * 0.42} ${eyeRx * 0.86} ${eyes.size * 0.12}`
+  const browPath = `M ${-eyeRx * 0.72} ${-eyes.size * 0.9} Q 0 ${-eyes.size * 1.02} ${eyeRx * 0.72} ${-eyes.size * 0.9}`
   const pupilChildren: SvgNode[] = [el('circle', { r: pupilR, fill: eyes.pupilColor })]
   if (eyes.highlight) {
     pupilChildren.push(
@@ -91,14 +106,19 @@ function eyeNodes(project: AvatarProject, side: 'left' | 'right', clipId: string
       // Separate wrappers so expression transforms, the idle blink and the
       // pupil drift each animate their own element without conflicts.
       el('g', { class: 'avatar-eye-anim' }, [
-        el('g', { class: 'avatar-eye-blink' }, [
-          el('g', { transform: `scale(1 ${eyes.squash})` }, [
-            el('path', { d: eyePath(eyes), fill: eyes.color }),
-            el('g', { 'clip-path': `url(#${clipId})` }, [
-              el('g', { class: 'avatar-pupil-anim' }, [el('g', { class: 'avatar-pupil' }, pupilChildren)]),
+        el('g', { class: 'avatar-eye-open' }, [
+          el('g', { class: 'avatar-eye-blink' }, [
+            el('g', { transform: `scale(1 ${eyes.squash})` }, [
+              el('path', { d: eyePath(eyes), fill: eyes.color }),
+              el('g', { 'clip-path': `url(#${clipId})` }, [
+                el('g', { class: 'avatar-pupil-anim' }, [el('g', { class: 'avatar-pupil' }, pupilChildren)]),
+              ]),
             ]),
           ]),
         ]),
+        el('path', { class: 'avatar-eye-closed', d: closedEyePath, ...lidAttrs }),
+        el('path', { class: 'avatar-eye-smile', d: smileEyePath, ...lidAttrs }),
+        el('path', { class: 'avatar-eyebrow', d: browPath, ...lidAttrs }),
       ]),
     ],
   )
@@ -182,8 +202,7 @@ function propShapeNodes(prop: ExpressionProp, size: number): SvgNode[] {
  * are invisible even without CSS; expression keyframes fade them in.
  */
 function propNode(exprName: string, prop: ExpressionProp, body: Body): SvgNode {
-  // Geometric mean keeps props readable on very wide or very tall bodies.
-  const size = prop.size * Math.sqrt(body.width * body.height)
+  const size = prop.size * Math.min(body.width, body.height)
   const ax = (prop.x * body.width) / 2
   const ay = (prop.y * body.height) / 2
   // Outer g holds the anchor translate; the inner animated g must not carry
