@@ -1,0 +1,178 @@
+{
+  "version": 1,
+  "name": "BoxBuddy",
+  "body": {
+    "kind": "rect",
+    "width": 180,
+    "height": 160,
+    "cornerRadius": 24,
+    "blobVariant": 0,
+    "fill": {
+      "type": "gradient",
+      "color": "#d9a066"
+    },
+    "stroke": null
+  },
+  "parts": [
+    {
+      "id": "tape",
+      "name": "Tape line",
+      "kind": "strip",
+      "x": 0,
+      "y": -62,
+      "width": 180,
+      "height": 14,
+      "rotation": 0,
+      "cornerRadius": 2,
+      "fill": {
+        "type": "solid",
+        "color": "#c98d52"
+      },
+      "stroke": null,
+      "opacity": 1,
+      "hidden": false,
+      "locked": false,
+      "mirror": false,
+      "behindBody": false
+    },
+    {
+      "id": "label",
+      "name": "Label",
+      "kind": "rect",
+      "x": 52,
+      "y": 52,
+      "width": 44,
+      "height": 28,
+      "rotation": -6,
+      "cornerRadius": 4,
+      "fill": {
+        "type": "solid",
+        "color": "#f2e6d4"
+      },
+      "stroke": {
+        "color": "#b07d4a",
+        "width": 2
+      },
+      "opacity": 1,
+      "hidden": false,
+      "locked": false,
+      "mirror": false,
+      "behindBody": false
+    },
+    {
+      "id": "blush",
+      "name": "Blush",
+      "kind": "ellipse",
+      "x": -52,
+      "y": 8,
+      "width": 22,
+      "height": 12,
+      "rotation": 0,
+      "cornerRadius": 0,
+      "fill": {
+        "type": "solid",
+        "color": "#e8917c"
+      },
+      "stroke": null,
+      "opacity": 0.65,
+      "hidden": false,
+      "locked": false,
+      "mirror": true,
+      "behindBody": false
+    }
+  ],
+  "eyes": {
+    "style": "round",
+    "spacing": 38,
+    "offsetY": -18,
+    "size": 16,
+    "squash": 1,
+    "pupilSize": 0.45,
+    "highlight": true,
+    "color": "#ffffff",
+    "pupilColor": "#2b2b2b",
+    "pupilDrift": true
+  },
+  "mouth": {
+    "style": "smile",
+    "offsetY": 28,
+    "width": 44,
+    "height": 18,
+    "curvature": 0.7,
+    "color": "#2b2b2b"
+  },
+  "expressions": {
+    "idle": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": true
+    },
+    "happy": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": true
+    },
+    "curious": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": true
+    },
+    "angry": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": false
+    },
+    "confused": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": false
+    },
+    "sad": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": false
+    },
+    "surprised": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": true
+    },
+    "sleepy": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": true
+    },
+    "love": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": false
+    },
+    "laughing": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": false
+    },
+    "wink": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "once",
+      "include": true
+    },
+    "dizzy": {
+      "speed": 1,
+      "intensity": 1,
+      "loop": "infinite",
+      "include": false
+    }
+  }
+}

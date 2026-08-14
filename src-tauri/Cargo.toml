@@ -1,0 +1,17 @@
+[package]
+name = "character-builder"
+version = "0.1.0"
+description = "Avatar Builder — design animated 2D characters and export them as Vue components"
+edition = "2021"
+
+[lib]
+name = "character_builder_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
