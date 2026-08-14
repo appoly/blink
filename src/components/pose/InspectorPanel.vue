@@ -264,17 +264,24 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
           <input type="checkbox" :checked="!!selectedPart.corners" @change="togglePerCorner(selectedPart!)" />
         </div>
         <div v-if="selectedPart.corners" class="field">
-          <label>TL TR BR BL</label>
-          <div class="row">
-            <input
-              v-for="(corner, i) in selectedPart.corners"
-              :key="i"
-              type="number"
-              style="width: 44px"
-              min="0"
-              :value="corner"
-              @change="setCorner(selectedPart!, i, $event)"
-            />
+          <label>Corners</label>
+          <div class="corner-grid">
+            <div class="corner-cell">
+              <span class="corner-glyph tl" />
+              <input type="number" min="0" :value="selectedPart.corners[0]" @change="setCorner(selectedPart!, 0, $event)" />
+            </div>
+            <div class="corner-cell">
+              <input type="number" min="0" :value="selectedPart.corners[1]" @change="setCorner(selectedPart!, 1, $event)" />
+              <span class="corner-glyph tr" />
+            </div>
+            <div class="corner-cell">
+              <span class="corner-glyph bl" />
+              <input type="number" min="0" :value="selectedPart.corners[3]" @change="setCorner(selectedPart!, 3, $event)" />
+            </div>
+            <div class="corner-cell">
+              <input type="number" min="0" :value="selectedPart.corners[2]" @change="setCorner(selectedPart!, 2, $event)" />
+              <span class="corner-glyph br" />
+            </div>
           </div>
         </div>
       </template>
@@ -345,6 +352,54 @@ const MOUTH_STYLES = ['smile', 'open', 'flat', 'o', 'cat', 'tongue'] as const
   padding: 0;
   border-radius: 4px;
   border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* 2×2 corner-radius inputs laid out like the corners they control. */
+.corner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.corner-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.corner-cell input {
+  width: 100%;
+}
+
+.corner-glyph {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border: 0 solid var(--text-dim);
+}
+
+.corner-glyph.tl {
+  border-top-width: 2px;
+  border-left-width: 2px;
+  border-top-left-radius: 6px;
+}
+
+.corner-glyph.tr {
+  border-top-width: 2px;
+  border-right-width: 2px;
+  border-top-right-radius: 6px;
+}
+
+.corner-glyph.bl {
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+  border-bottom-left-radius: 6px;
+}
+
+.corner-glyph.br {
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+  border-bottom-right-radius: 6px;
 }
 
 .danger {
