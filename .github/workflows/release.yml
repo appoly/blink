@@ -45,3 +45,5 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'Blink ${{ github.ref_name }}'
           releaseDraft: false
+          # Everything before 1.0 ships as a pre-release.
+          prerelease: true
