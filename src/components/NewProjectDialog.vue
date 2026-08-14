@@ -8,11 +8,20 @@ const editor = useEditorStore()
 const store = useProjectStore()
 
 const description = ref('')
+const personality = ref('')
+const palette = ref('')
+const notes = ref('')
 const response = ref('')
 const copied = ref(false)
 const error = ref<string | null>(null)
 
-const prompt = computed(() => buildGenerationPrompt(description.value || '(no description given — invent a cute character)'))
+const prompt = computed(() =>
+  buildGenerationPrompt(description.value, {
+    personality: personality.value,
+    palette: palette.value,
+    notes: notes.value,
+  }),
+)
 
 async function copyPrompt() {
   try {
@@ -64,12 +73,47 @@ function importResponse() {
       <div class="step">
         <span class="step-num">1</span>
         <div class="step-body">
-          <label>What do you want?</label>
+          <label>Describe your idea <span class="required">Required</span></label>
           <textarea
             v-model="description"
             rows="3"
-            placeholder="e.g. a rectangular avatar that looks like a package, with tape across the top and down the middle, and a postage stamp on the bottom right"
+            placeholder="e.g. a friendly little storm cloud who is trying its best"
           />
+          <p class="hint">A sentence or a few rough words is enough. The AI will make the design decisions.</p>
+          <details class="preferences">
+            <summary>Add preferences <span>Optional</span></summary>
+            <div class="preference-grid">
+              <label>
+                Personality
+                <select v-model="personality">
+                  <option value="">Choose for me</option>
+                  <option>Cheerful and sunny</option>
+                  <option>Cosy and gentle</option>
+                  <option>Playful and energetic</option>
+                  <option>Calm and thoughtful</option>
+                  <option>Cheeky and mischievous</option>
+                  <option>Bold and confident</option>
+                  <option>Grumpy but lovable</option>
+                </select>
+              </label>
+              <label>
+                Colour mood
+                <select v-model="palette">
+                  <option value="">Choose for me</option>
+                  <option>Soft pastels</option>
+                  <option>Warm and sunny</option>
+                  <option>Cool and calm</option>
+                  <option>Bright and punchy</option>
+                  <option>Earthy and natural</option>
+                  <option>Dark and moody</option>
+                </select>
+              </label>
+            </div>
+            <label class="notes-label">
+              Anything it must have—or avoid?
+              <input v-model="notes" type="text" placeholder="e.g. must have tiny horns; no pink" />
+            </label>
+          </details>
         </div>
       </div>
 
@@ -187,6 +231,60 @@ h2 {
   font-size: 12px;
 }
 
+.required,
+.preferences summary span {
+  margin-left: 5px;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.preferences {
+  width: 100%;
+  margin-top: 2px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, var(--panel-2) 55%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+}
+
+.preferences summary {
+  color: var(--text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.preference-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.preference-grid label,
+.notes-label {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: var(--text-dim);
+}
+
+.notes-label {
+  margin-top: 10px;
+}
+
+.preference-grid select,
+.notes-label input {
+  width: 100%;
+}
+
 textarea {
   width: 100%;
   resize: vertical;
@@ -202,5 +300,11 @@ textarea {
   margin: 0;
   color: var(--danger);
   font-size: 12px;
+}
+
+@media (max-width: 520px) {
+  .preference-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

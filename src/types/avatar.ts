@@ -1,6 +1,6 @@
 // Project schema — this is what gets saved to .avatar files (JSON).
 
-export type BodyKind = 'rect' | 'circle' | 'ellipse' | 'capsule' | 'trapezoid' | 'blob'
+export type BodyKind = 'rect' | 'circle' | 'ellipse' | 'capsule' | 'trapezoid' | 'tapered' | 'blob'
 export type PartKind =
   | BodyKind
   | 'lobe'

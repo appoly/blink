@@ -74,6 +74,7 @@ const BODY_KINDS = [
   ['ellipse', 'Ellipse'],
   ['capsule', 'Capsule'],
   ['trapezoid', 'Trapezoid'],
+  ['tapered', 'Tapered — wide top'],
   ['blob', 'Blob'],
 ] as const
 

@@ -48,6 +48,12 @@ export function trapezoidPath(w: number, h: number): string {
   return `M ${f(-w / 2 + inset)} ${f(-h / 2)} L ${f(w / 2 - inset)} ${f(-h / 2)} L ${f(w / 2)} ${f(h / 2)} L ${f(-w / 2)} ${f(h / 2)} Z`
 }
 
+/** Wide at the top and narrow at the bottom — cups, pots and tapered containers. */
+export function taperedPath(w: number, h: number): string {
+  const inset = w * 0.18
+  return `M ${f(-w / 2)} ${f(-h / 2)} L ${f(w / 2)} ${f(-h / 2)} L ${f(w / 2 - inset)} ${f(h / 2)} L ${f(-w / 2 + inset)} ${f(h / 2)} Z`
+}
+
 export function trianglePath(w: number, h: number): string {
   return `M 0 ${f(-h / 2)} L ${f(w / 2)} ${f(h / 2)} L ${f(-w / 2)} ${f(h / 2)} Z`
 }
@@ -265,6 +271,8 @@ export function shapePath(
       return arcBandPath(w, h, bend)
     case 'trapezoid':
       return trapezoidPath(w, h)
+    case 'tapered':
+      return taperedPath(w, h)
     case 'blob':
       return blobPath(w, h, blobVariant)
     case 'triangle':
