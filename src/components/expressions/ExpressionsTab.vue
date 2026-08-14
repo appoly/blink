@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import AvatarSvg from '../AvatarSvg.vue'
+import SidebarNav from '../SidebarNav.vue'
 import { useEditorStore } from '../../stores/editor'
 import { useProjectStore } from '../../stores/project'
 import { EXPRESSIONS } from '../../lib/expressions'
 import { avatarStylesheet } from '../../lib/animationCss'
 import { useInjectedStyle } from '../../composables/useInjectedStyle'
 import { EXPRESSION_NAMES, type ExpressionName, type LoopMode } from '../../types/avatar'
+import { renderExpressionGif } from '../../lib/gifExport'
+import { componentName } from '../../lib/exporter'
 
 const editor = useEditorStore()
 const store = useProjectStore()
@@ -65,102 +68,142 @@ function toggleInclude(name: ExpressionName) {
   s.include = !s.include
   store.commit()
 }
+
+// Right-click menu on an expression card: export inclusion + GIF export.
+const menu = ref<{ name: ExpressionName; x: number; y: number } | null>(null)
+
+function openMenu(name: ExpressionName, e: MouseEvent) {
+  menu.value = {
+    name,
+    x: Math.min(e.clientX, window.innerWidth - 190),
+    y: Math.min(e.clientY, window.innerHeight - 90),
+  }
+}
+
+/** Per-card GIF export status ("GIF 42%" / "GIF failed"), shown on the thumbnail. */
+const gifStatus = ref<{ name: ExpressionName; text: string } | null>(null)
+
+/** Render one cycle of an expression to a GIF and save it. */
+async function exportGif(name: ExpressionName) {
+  menu.value = null
+  gifStatus.value = { name, text: 'GIF…' }
+  try {
+    const bytes = await renderExpressionGif(project.value, name, (done, total) => {
+      gifStatus.value = { name, text: `GIF ${Math.round((done / total) * 100)}%` }
+    })
+    const filename = `${componentName(project.value)}-${name}.gif`
+    if ('__TAURI_INTERNALS__' in window) {
+      const { save } = await import('@tauri-apps/plugin-dialog')
+      const { writeFile } = await import('@tauri-apps/plugin-fs')
+      const path = await save({ defaultPath: filename })
+      if (path) await writeFile(path, bytes)
+    } else {
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'image/gif' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = filename
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+    gifStatus.value = null
+  } catch (err) {
+    console.error('GIF export failed', err)
+    gifStatus.value = { name, text: 'GIF failed' }
+    setTimeout(() => {
+      if (gifStatus.value?.name === name && gifStatus.value.text === 'GIF failed') gifStatus.value = null
+    }, 4000)
+  }
+}
 </script>
 
 <template>
   <div class="expressions-tab">
     <!-- Left 70%: the avatar hero + transport/tweaks. -->
     <div class="stage-column">
-    <section class="stage-area">
-      <div :key="current + (editor.playing ? '-play' : '')" class="expr-stage" :class="`avatar-expr--${current}`" :style="stageVars">
-        <AvatarSvg :project="project" id-prefix="pv" />
-      </div>
-      <div class="expr-name">{{ current }}</div>
-    </section>
+      <section class="stage-area">
+        <div :key="current + (editor.playing ? '-play' : '')" class="expr-stage" :class="`avatar-expr--${current}`" :style="stageVars">
+          <AvatarSvg :project="project" id-prefix="pv" />
+        </div>
+        <div class="expr-name">{{ current }}</div>
+      </section>
 
-    <section class="controls-bar">
-      <button class="play" @click="editor.playing = !editor.playing; editor.scrub = 0">
-        {{ editor.playing ? '⏸' : '▶' }}
-      </button>
-      <input
-        class="scrub"
-        type="range"
-        min="0"
-        :max="cycleDuration.toFixed(2)"
-        step="0.01"
-        :value="editor.playing ? 0 : editor.scrub"
-        @input="onScrub"
-      />
-      <span class="time">{{ cycleDuration.toFixed(2) }}s</span>
-
-      <span class="divider" />
-
-      <label>Speed</label>
-      <input type="range" class="tweak" min="0.25" max="3" step="0.05" :value="settings.speed" @input="settings.speed = num($event)" @change="commit" />
-      <span class="value">{{ settings.speed.toFixed(2) }}×</span>
-
-      <label>Intensity</label>
-      <input type="range" class="tweak" min="0" max="1.5" step="0.05" :value="settings.intensity" @input="settings.intensity = num($event)" @change="commit" />
-      <span class="value">{{ Math.round(settings.intensity * 100) }}%</span>
-
-      <label>Loop</label>
-      <select :value="loopChoice" @change="setLoop">
-        <option value="infinite">Forever</option>
-        <option value="once">Once</option>
-        <option value="count">N times</option>
-      </select>
-      <input
-        v-if="loopChoice === 'count'"
-        type="number"
-        style="width: 48px"
-        min="1"
-        max="99"
-        :value="settings.loop"
-        @change="settings.loop = Math.max(1, num($event)); commit()"
-      />
-
-      <label class="include" :title="current === 'idle' ? 'Idle is always exported' : 'Ship this expression in the exported component'">
+      <section class="controls-bar">
+        <button class="play" @click="editor.playing = !editor.playing; editor.scrub = 0">
+          {{ editor.playing ? '⏸' : '▶' }}
+        </button>
         <input
-          type="checkbox"
-          :checked="settings.include"
-          :disabled="current === 'idle'"
-          @change="settings.include = !settings.include; commit()"
+          class="scrub"
+          type="range"
+          min="0"
+          :max="cycleDuration.toFixed(2)"
+          step="0.01"
+          :value="editor.playing ? 0 : editor.scrub"
+          @input="onScrub"
         />
-        Export
-      </label>
-    </section>
+        <span class="time">{{ cycleDuration.toFixed(2) }}s</span>
+
+        <span class="divider" />
+
+        <label>Speed</label>
+        <input type="range" class="tweak" min="0.25" max="3" step="0.05" :value="settings.speed" @input="settings.speed = num($event)" @change="commit" />
+        <span class="value">{{ settings.speed.toFixed(2) }}×</span>
+
+        <label>Intensity</label>
+        <input type="range" class="tweak" min="0" max="1.5" step="0.05" :value="settings.intensity" @input="settings.intensity = num($event)" @change="commit" />
+        <span class="value">{{ Math.round(settings.intensity * 100) }}%</span>
+
+        <label>Loop</label>
+        <select :value="loopChoice" @change="setLoop">
+          <option value="infinite">Forever</option>
+          <option value="once">Once</option>
+          <option value="count">N times</option>
+        </select>
+        <input
+          v-if="loopChoice === 'count'"
+          type="number"
+          style="width: 48px"
+          min="1"
+          max="99"
+          :value="settings.loop"
+          @change="settings.loop = Math.max(1, num($event)); commit()"
+        />
+      </section>
     </div>
 
-    <!-- Right 30%: preset grid, thumbnailed with the user's own avatar. -->
-    <section class="preset-sidebar">
-      <button
-        v-for="name in EXPRESSION_NAMES"
-        :key="name"
-        class="card"
-        :class="{ active: name === current, excluded: !project.expressions[name].include }"
-        @click="pick(name)"
-      >
-        <div class="expr-thumb" :class="`avatar-expr--${name}`" :style="thumbVars(name)">
-          <AvatarSvg :project="project" :id-prefix="`th-${name}`" />
-          <span v-if="!project.expressions[name].include" class="excluded-badge">not exported</span>
-        </div>
-        <span class="card-label">
-          <label
-            class="export-toggle"
-            :title="name === 'idle' ? 'Idle is always exported' : 'Ship this expression in the exported component'"
-            @click.stop
-          >
-            <input
-              type="checkbox"
-              :checked="project.expressions[name].include"
-              :disabled="name === 'idle'"
-              @change="toggleInclude(name)"
-            />
-          </label>
-          {{ name }}
-        </span>
-      </button>
-    </section>
+    <!-- Right 30%: preset grid, thumbnailed with the user's own avatar,
+         with the view switcher pinned to the bottom. -->
+    <aside class="sidebar">
+      <section class="preset-grid">
+        <button
+          v-for="name in EXPRESSION_NAMES"
+          :key="name"
+          class="card"
+          :class="{ active: name === current, excluded: !project.expressions[name].include }"
+          title="Right-click for export options"
+          @click="pick(name)"
+          @contextmenu.prevent="openMenu(name, $event)"
+        >
+          <div class="expr-thumb" :class="`avatar-expr--${name}`" :style="thumbVars(name)">
+            <AvatarSvg :project="project" :id-prefix="`th-${name}`" />
+            <span v-if="!project.expressions[name].include" class="excluded-badge">not exported</span>
+            <span v-if="gifStatus?.name === name" class="gif-badge">{{ gifStatus.text }}</span>
+          </div>
+          <span class="card-label">{{ name }}</span>
+        </button>
+      </section>
+      <SidebarNav />
+    </aside>
+
+    <template v-if="menu">
+      <div class="ctx-backdrop" @click="menu = null" @contextmenu.prevent="menu = null" />
+      <div class="ctx-menu" :style="{ left: `${menu.x}px`, top: `${menu.y}px` }">
+        <button v-if="menu.name === 'idle'" disabled title="Idle is always exported">Always exported</button>
+        <button v-else @click="toggleInclude(menu.name); menu = null">
+          {{ project.expressions[menu.name].include ? 'Remove from export' : 'Add to export' }}
+        </button>
+        <button :disabled="!!gifStatus" @click="exportGif(menu.name)">Export as GIF…</button>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -210,14 +253,15 @@ function toggleInclude(name: ExpressionName) {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 16px;
+  padding: 14px 16px;
   background: var(--panel);
   border-top: 1px solid var(--border);
   flex-wrap: wrap;
 }
 
 .play {
-  width: 36px;
+  width: 44px;
+  height: 34px;
 }
 
 .scrub {
@@ -243,24 +287,59 @@ function toggleInclude(name: ExpressionName) {
   width: 90px;
 }
 
-.include {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--text);
-  margin-left: 6px;
+.ctx-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
 }
 
-.preset-sidebar {
+.ctx-menu {
+  position: fixed;
+  z-index: 91;
+  min-width: 170px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.ctx-menu button {
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: 5px;
+}
+
+.ctx-menu button:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ctx-menu button:disabled {
+  color: var(--text-dim);
+}
+
+.sidebar {
   flex: 0 0 30%;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+}
+
+.preset-grid {
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   align-content: start;
   padding: 12px;
-  background: var(--panel);
-  border-left: 1px solid var(--border);
   overflow-y: auto;
 }
 
@@ -297,9 +376,16 @@ function toggleInclude(name: ExpressionName) {
   white-space: nowrap;
 }
 
-.export-toggle {
-  display: inline-flex;
-  cursor: pointer;
+.gif-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 4px;
+  padding: 1px 6px;
 }
 
 .expr-thumb {
@@ -323,15 +409,7 @@ function toggleInclude(name: ExpressionName) {
 
 .card-label {
   text-transform: capitalize;
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  align-items: center;
+  text-align: center;
   font-size: 12px;
-}
-
-.included {
-  color: var(--accent);
-  font-size: 8px;
 }
 </style>
